@@ -1,0 +1,139 @@
+.container {
+  position: relative;
+}
+
+.filterButton {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.filterButton:hover {
+  background-color: #0056b3;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 250px;
+  height: 100%;
+  background-color: #ffffff;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebarOpen {
+  left: 0;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+.attendanceInput {
+  width: 30px;
+  text-align: center;
+}
+
+.eventTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
+  table-layout: fixed;
+  position: relative;
+}
+
+.eventTable th,
+.eventTable td {
+  padding: 10px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.eventTable th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+  outline: none;
+}
+
+/* Стили для фиксированной шапки */
+.eventTable thead tr {
+  position: sticky;
+  top: 0;
+  background-color: #f4f4f4;
+  z-index: 10;
+}
+
+/* Стили для первой колонки с именами */
+.eventTable tbody td:first-child,
+.eventTable thead th:first-child {
+  text-align: left;
+  padding-left: 15px;
+  width: 150px; /* Убираем фиксированную ширину */
+  white-space: nowrap; /* Предотвращаем перенос текста */
+}
+
+/* Остальные колонки сохраняют фиксированную ширину */
+.eventTable th:not(:first-child),
+.eventTable td:not(:first-child) {
+  width: 100px;
+}
+
+/* Стили для фиксированной строки "Итого" */
+.eventTable tbody tr:last-child {
+  position: sticky;
+  bottom: 0;
+  background-color: #fff;
+  z-index: 10;
+  border-top: 2px solid #ddd;
+}
+
+.eventTable td {
+  border: 1px solid #ddd;
+}
+
+.eventTable td:focus-within {
+  border: 2px solid #007bff;
+}
+
+.eventTable input {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.eventTable td strong {
+  display: block;
+  text-align: center;
+  outline: none;
+}
+
+.loading {
+  font-size: 18px;
+  text-align: center;
+  padding: 20px;
+}
+
+.noData {
+  font-size: 16px;
+  color: #888;
+  text-align: center;
+  padding: 20px;
+}
