@@ -1,4 +1,3 @@
-/* FilterSidebar.module.css */
 .filterSidebar {
   display: flex;
   flex-direction: column;
@@ -6,29 +5,70 @@
   padding: 20px;
   font-size: 16px;
   color: #333;
+  background-color: #ffffff;
+  height: 100%;
+  box-sizing: border-box;
 }
 
-.filterSidebar h3 {
+.title {
   margin: 0 0 10px 0;
   font-size: 20px;
   font-weight: bold;
   color: #007bff;
 }
 
-.filterSidebar label {
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filterOption {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.radioLabel {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
   cursor: pointer;
 }
 
-.filterSidebar input[type="radio"] {
+.radioInput {
   margin: 0;
-  accent-color: #007bff; /* Цвет радио-кнопки */
+  accent-color: #007bff; /* Цвет основной радио-кнопки */
 }
 
-.filterSidebar input[type="text"] {
+.subOptions {
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.subRadioLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.subRadioInput {
+  margin: 0;
+  accent-color: #007bff; /* Цвет вложенных радио-кнопок */
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.textInput {
   width: 100%;
   padding: 8px 12px;
   font-size: 14px;
@@ -39,12 +79,12 @@
   transition: border-color 0.3s ease;
 }
 
-.filterSidebar input[type="text"]:focus {
+.textInput:focus {
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
-.filterSidebar button {
+.applyButton {
   padding: 8px 16px;
   background-color: #007bff;
   color: white;
@@ -55,17 +95,47 @@
   transition: background-color 0.3s ease;
 }
 
-.filterSidebar button:hover {
+.applyButton:hover {
   background-color: #0056b3;
 }
 
-.filterSidebar button:disabled {
+.applyButton:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
 }
 
-.filterSidebar p {
+.error {
   margin: 10px 0 0 0;
   font-size: 14px;
   color: red;
+}
+.autocomplete {
+  position: relative;
+  width: 100%;
+}
+
+.suggestionsList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.suggestionItem {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.suggestionItem:hover {
+  background-color: #f0f0f0;
 }

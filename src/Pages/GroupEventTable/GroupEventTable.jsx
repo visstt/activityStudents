@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "./GroupEventTable.module.css";
-import FilterSidebar from "./FilterSidebar"; // Импортируем компонент фильтрации
+import FilterSidebar from "./FilterSidebar";
 
 const GroupEventTable = () => {
   const [students, setStudents] = useState([]);
@@ -10,12 +10,9 @@ const GroupEventTable = () => {
   const [groupName, setGroupName] = useState("3ПК1");
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // Новое состояние для хранения данных о группах или отделениях
   const [filteredData, setFilteredData] = useState([]);
-  const [filterType, setFilterType] = useState("students"); // Тип фильтра: students, groups, departments
+  const [filterType, setFilterType] = useState("students");
 
-  // Загрузка начальных данных
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,7 +55,6 @@ const GroupEventTable = () => {
     fetchData();
   }, []);
 
-  // Сохранение данных посещаемости
   const saveAttendance = async (updatedAttendance) => {
     try {
       const dataToSave = students.map((student) => ({
@@ -79,7 +75,6 @@ const GroupEventTable = () => {
     }
   };
 
-  // Обработка нажатия клавиш в поле ввода
   const handleKeyPress = (event, studentId, eventKey) => {
     if (event.key === "0" || event.key === "1") {
       event.preventDefault();
@@ -94,7 +89,6 @@ const GroupEventTable = () => {
     }
   };
 
-  // Подсчет статистики по событиям
   const getEventStats = (eventKey) => {
     return Object.values(attendance).reduce(
       (sum, student) => sum + (parseInt(student[eventKey]) || 0),
@@ -102,15 +96,12 @@ const GroupEventTable = () => {
     );
   };
 
-  // Открытие/закрытие сайдбара
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
   };
 
-  // Обработка применения фильтра
   const handleFilterApply = (data, type) => {
     if (type === "students") {
-      // Если данные - это список студентов (например, после фильтрации по группе)
       const studentList = data.map((student) => ({
         id: student.studentId,
         name: student.fullName,
@@ -135,7 +126,6 @@ const GroupEventTable = () => {
       setGroupName(data[0].groupName || "Новая группа");
       setFilterType("students");
     } else if (type === "groups" || type === "departments") {
-      // Если данные - это список групп или отделений
       const eventList = data[0].events.map((event, index) => ({
         name: event.name,
         key: `event${index + 1}`,
@@ -162,14 +152,13 @@ const GroupEventTable = () => {
     } else {
       console.error("Неизвестный тип данных:", type);
     }
+    setIsSidebarOpen(false); // Закрываем сайдбар после применения фильтра
   };
 
-  // Отображение загрузки
   if (loading) {
     return <div className={styles.loading}>Загрузка...</div>;
   }
 
-  // Отображение сообщения об отсутствии данных
   if (!students.length || !events.length) {
     return <div className={styles.noData}>Нет данных для отображения</div>;
   }
@@ -180,22 +169,22 @@ const GroupEventTable = () => {
         Фильтры
       </button>
 
-      {/* Сайдбар */}
       <div
         className={`${styles.sidebar} ${
           isSidebarOpen ? styles.sidebarOpen : ""
         }`}
       >
-        <FilterSidebar onFilterApply={handleFilterApply} />
+        <FilterSidebar
+          onFilterApply={handleFilterApply}
+          onClose={toggleSidebar} // Передаем функцию закрытия
+        />
         <button onClick={toggleSidebar}>Закрыть</button>
       </div>
 
-      {/* Оверлей (затемнение фона) */}
       {isSidebarOpen && (
         <div className={styles.overlay} onClick={toggleSidebar}></div>
       )}
 
-      {/* Таблица */}
       <table className={styles.eventTable}>
         <thead>
           <tr key="header-row">
