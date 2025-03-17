@@ -1,5 +1,7 @@
 .container {
   position: relative;
+  width: 100%;
+  overflow-x: auto;
 }
 
 .filterButton {
@@ -10,6 +12,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  margin-bottom: 10px;
 }
 
 .filterButton:hover {
@@ -42,18 +45,18 @@
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
+
 .attendanceInput {
   width: 30px;
   text-align: center;
 }
 
 .eventTable {
-  width: 100%;
   border-collapse: collapse;
   margin: 20px 0;
   font-size: 16px;
   table-layout: fixed;
-  position: relative;
+  width: auto;
 }
 
 .eventTable th,
@@ -61,15 +64,17 @@
   padding: 10px;
   text-align: center;
   box-sizing: border-box;
+  min-width: 0;
 }
 
 .eventTable th {
   background-color: #f4f4f4;
   font-weight: bold;
   outline: none;
+  font-size: 14px;
+  position: relative; /* Для позиционирования tooltip */
 }
 
-/* Стили для фиксированной шапки */
 .eventTable thead tr {
   position: sticky;
   top: 0;
@@ -77,22 +82,25 @@
   z-index: 10;
 }
 
-/* Стили для первой колонки с именами */
 .eventTable tbody td:first-child,
 .eventTable thead th:first-child {
   text-align: left;
   padding-left: 15px;
-  width: 150px; /* Убираем фиксированную ширину */
-  white-space: nowrap; /* Предотвращаем перенос текста */
+  width: 150px;
+  max-width: 350px;
+  min-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Остальные колонки сохраняют фиксированную ширину */
 .eventTable th:not(:first-child),
 .eventTable td:not(:first-child) {
   width: 100px;
+  max-width: 100px;
+  min-width: 100px;
 }
 
-/* Стили для фиксированной строки "Итого" */
 .eventTable tbody tr:last-child {
   position: sticky;
   bottom: 0;
@@ -136,4 +144,73 @@
   color: #888;
   text-align: center;
   padding: 20px;
+}
+
+.chartContainer {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  height: 450px;
+  margin-left: 0;
+  margin-right: auto;
+  text-align: left;
+}
+
+.toggleChartButton {
+  padding: 8px 16px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.toggleChartButton:hover {
+  background-color: #218838;
+}
+
+/* Стили для кастомного tooltip */
+.tooltipWrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  cursor: pointer;
+}
+
+.eventName {
+  display: block;
+  white-space: nowrap; /* Текст не переносится */
+  overflow: hidden; /* Обрезаем лишнее */
+  text-overflow: ellipsis; /* Многоточие */
+  max-width: 100px; /* Ограничение ширины текста */
+}
+
+.customTooltip {
+  position: absolute;
+  top: -45px; /* Над ячейкой */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8); /* Полупрозрачный черный фон */
+  color: #fff; /* Белый текст */
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px; /* Читаемый размер шрифта */
+  line-height: 1.4; /* Улучшенный межстрочный интервал */
+  white-space: nowrap; /* Текст в одну строку */
+  z-index: 100; /* Выше всех элементов таблицы */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Тень для глубины */
+  pointer-events: none; /* Не мешает взаимодействию */
+}
+.studentNameCell {
+  cursor: pointer;
+}
+
+.studentNameCell:hover {
+  text-decoration: underline;
+}
+.highlightedHeader {
+  background-color: #fcb8b8 !important; /* Нежно-красный цвет с приоритетом */
 }

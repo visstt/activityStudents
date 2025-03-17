@@ -3,12 +3,12 @@ import axios from "axios";
 import styles from "./FilterSidebar.module.css";
 
 const FilterSidebar = ({ onFilterApply, onClose }) => {
-  const [filterType, setFilterType] = useState(null); // По умолчанию ничего не выбрано
+  const [filterType, setFilterType] = useState(null);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [groupSuggestions, setGroupSuggestions] = useState([]); // Подсказки для групп
-  const [groups, setGroups] = useState([]); // Список всех групп
+  const [groupSuggestions, setGroupSuggestions] = useState([]);
+  const [groups, setGroups] = useState([]);
 
   const departments = [
     { id: 1, departmentName: "Отделение креативных индустрий" },
@@ -17,7 +17,6 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     { id: 4, departmentName: "Отделение ИТ и БПЛА" },
   ];
 
-  // Загружаем список групп при монтировании компонента
   useEffect(() => {
     const fetchGroups = async () => {
       try {
@@ -34,14 +33,13 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     setFilterType(e.target.value);
     setInputValue("");
     setError("");
-    setGroupSuggestions([]); // Очищаем подсказки при смене фильтра
+    setGroupSuggestions([]);
   };
 
   const handleInputChange = (e) => {
     const value = e.target.value;
     setInputValue(value);
 
-    // Фильтруем группы по введенному тексту
     if (filterType === "studentsByGroup" && value) {
       const filteredGroups = groups.filter((group) =>
         group.groupeName.toLowerCase().startsWith(value.toLowerCase())
@@ -54,7 +52,7 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
 
   const handleSuggestionClick = (groupName) => {
     setInputValue(groupName);
-    setGroupSuggestions([]); // Скрываем подсказки после выбора
+    setGroupSuggestions([]);
   };
 
   const handleCourseSelect = (courseId) => {
@@ -113,8 +111,7 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
       }
 
       const response = await axios.get(url);
-      onFilterApply(response.data, type);
-      onClose(); // Закрываем сайдбар после успешного применения фильтра
+      onFilterApply(response.data, type); // Передаем данные в родительский компонент
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);
       setError(
@@ -221,7 +218,7 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
               type="text"
               value={inputValue}
               onChange={handleInputChange}
-              placeholder="Введите название группы (например, 3пк1)"
+              placeholder="Введите название группы"
               className={styles.textInput}
             />
             {groupSuggestions.length > 0 && (
