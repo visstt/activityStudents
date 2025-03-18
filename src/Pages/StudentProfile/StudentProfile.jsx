@@ -50,6 +50,12 @@ const StudentProfile = () => {
             <p>
               <strong>Курс:</strong> {studentData.course}
             </p>
+            <p>
+              <strong>Пол:</strong> {studentData.gender}
+            </p>
+            <p>
+              <strong>Дата рождения:</strong> {studentData.dateOfBIrth}
+            </p>
           </div>
         </div>
 

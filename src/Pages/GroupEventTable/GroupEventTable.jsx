@@ -40,7 +40,7 @@ const GroupEventTable = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/event-journal/1"
+          "http://localhost:3000/event-journal/allStudents"
         );
         const apiData = response.data;
         const dataArray = Array.isArray(apiData) ? apiData : [apiData];
