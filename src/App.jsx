@@ -1,6 +1,5 @@
 import "./App.css";
 import Login from "./Pages/Autn/Login/Login";
-import Registration from "./Pages/Autn/Registration/Registration";
 import GroupEventTable from "./Pages/GroupEventTable/GroupEventTable";
 import {
   BrowserRouter as Router,
@@ -9,7 +8,10 @@ import {
   Navigate,
 } from "react-router-dom";
 import StudentProfile from "./Pages/StudentProfile/StudentProfile";
-import { jwtDecode } from "jwt-decode"; // Добавляем jwtDecode для проверки токена
+import ProfileAdmin from "./Pages/ProfileAdmin/ProfileAdmin";
+import AddUser from "./Pages/ProfileAdmin/AddUser";
+import { useState, useEffect } from "react";
+import NoAccess from "./Pages/NoAccess/NoAccess";
 
 function App() {
   // Функция для получения значения cookie по имени
@@ -20,29 +22,65 @@ function App() {
     return null;
   };
 
-  // Функция проверки авторизации
+  // Компонент для защищенных маршрутов с проверкой роли
+  const ProtectedAdminRoute = ({ children }) => {
+    const [isAdmin, setIsAdmin] = useState(null); // null - еще не проверено
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      const checkAdminStatus = async () => {
+        const accessToken = getCookie("access_token");
+
+        if (!accessToken) {
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const response = await fetch("http://localhost:3000/user/profile", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ access_token: accessToken }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Ошибка при проверке профиля");
+          }
+
+          const data = await response.json();
+          setIsAdmin(data.roleName === "admin");
+        } catch (err) {
+          console.error("Ошибка при проверке роли:", err);
+          setIsAdmin(false);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      checkAdminStatus();
+    }, []);
+
+    if (loading) {
+      return <div>Проверка доступа...</div>;
+    }
+
+    return isAdmin ? children : <Navigate to="/no-access" replace />;
+  };
+
+  // Функция проверки авторизации (без проверки роли)
   const isAuthenticated = () => {
     const accessToken = getCookie("access_token");
-    if (accessToken) {
-      try {
-        const decodedToken = jwtDecode(accessToken);
-        const currentTime = Date.now() / 1000; // Текущее время в секундах
-        return decodedToken.exp > currentTime; // Проверяем, не истек ли токен
-      } catch (err) {
-        console.error("Ошибка декодирования токена:", err);
-        return false;
-      }
-    }
-    return false;
+    return !!accessToken;
   };
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Registration />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Защищенные маршруты */}
         <Route
           path="/events"
           element={
@@ -64,7 +102,28 @@ function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedAdminRoute>
+              <ProfileAdmin />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/add-user"
+          element={
+            <ProtectedAdminRoute>
+              <AddUser />
+            </ProtectedAdminRoute>
+          }
+        />
+
+        {/* Страница "Нет доступа" */}
+        <Route path="/no-access" element={<NoAccess />} />
+
+        {/* Перенаправление с корня на /events */}
+        <Route path="/" element={<Navigate to="/events" replace />} />
       </Routes>
     </Router>
   );

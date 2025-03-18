@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import styles from "./Registration.module.css";
-import { useNavigate, Link } from "react-router-dom"; // Добавлен Link
+import styles from "./AddUser.module.css";
 import axios from "axios";
 
-function Registration() {
+export default function AddUser() {
   const [formData, setFormData] = useState({
     fullName: "",
     login: "",
@@ -13,16 +12,31 @@ function Registration() {
 
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(true);
-
-  const navigate = useNavigate();
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(null);
 
   useEffect(() => {
     const fetchRoles = async () => {
+      const accessToken = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("access_token="))
+        ?.split("=")[1];
+
+      if (!accessToken) {
+        setError("Токен не найден");
+        setRolesLoading(false);
+        return;
+      }
+
       try {
         const response = await axios.get(
-          "http://localhost:3000/role/all-roles"
+          "http://localhost:3000/role/all-roles",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
         );
         setRoles(response.data);
         if (response.data.length > 0) {
@@ -51,16 +65,41 @@ function Registration() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
+
+    const accessToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("access_token="))
+      ?.split("=")[1];
+
+    if (!accessToken) {
+      setError("Токен не найден");
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await axios.post(
         "http://localhost:3000/auth/register",
-        formData
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
       );
-      console.log("Успешная регистрация:", response.data);
-      navigate("/login");
+      console.log("Пользователь успешно добавлен:", response.data);
+      setSuccess("Пользователь успешно добавлен");
+      setFormData({
+        fullName: "",
+        login: "",
+        password: "",
+        role: roles[0]?.value || "",
+      });
     } catch (err) {
-      setError(err.response?.data?.message || "Ошибка при регистрации");
+      setError(
+        err.response?.data?.message || "Ошибка при добавлении пользователя"
+      );
       console.error("Ошибка:", err);
     } finally {
       setLoading(false);
@@ -70,7 +109,7 @@ function Registration() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.formContainer}>
-        <h2 className={styles.title}>Регистрация</h2>
+        <h2 className={styles.title}>Добавление пользователя</h2>
         <form className={styles.form} onSubmit={handleSubmit}>
           <input
             type="text"
@@ -123,19 +162,12 @@ function Registration() {
             className={styles.button}
             disabled={loading || rolesLoading}
           >
-            {loading ? "Регистрация..." : "Зарегистрироваться"}
+            {loading ? "Добавление..." : "Добавить пользователя"}
           </button>
         </form>
-        <p className={styles.linkText}>
-          Уже есть аккаунт?{" "}
-          <Link to="/login" className={styles.link}>
-            Войти
-          </Link>
-        </p>
         {error && <p className={styles.error}>{error}</p>}
+        {success && <p className={styles.success}>{success}</p>}
       </div>
     </div>
   );
 }
-
-export default Registration;

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import styles from "./Login.module.css";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -113,12 +112,6 @@ function Login() {
             {loading ? "Вход..." : "Войти"}
           </button>
         </form>
-        <p className={styles.linkText}>
-          Нет аккаунта?{" "}
-          <Link to="/register" className={styles.link}>
-            Зарегистрироваться
-          </Link>
-        </p>
         {error && <p className={styles.error}>{error}</p>}
       </div>
     </div>
