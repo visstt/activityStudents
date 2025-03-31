@@ -1,7 +1,6 @@
 .container {
   position: relative;
   width: 100%;
-  overflow-x: auto;
 }
 
 .filterButton {
@@ -57,6 +56,7 @@
   font-size: 16px;
   table-layout: fixed;
   width: auto;
+  overflow-x: auto;
 }
 
 .eventTable th,
@@ -204,13 +204,56 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Тень для глубины */
   pointer-events: none; /* Не мешает взаимодействию */
 }
+
 .studentNameCell {
   cursor: pointer;
 }
 
-.studentNameCell:hover {
-  text-decoration: underline;
-}
 .highlightedHeader {
   background-color: #fcb8b8 !important; /* Нежно-красный цвет с приоритетом */
+}
+
+.filterInfo {
+  margin: 15px 0;
+  font-size: 16px; /* Читаемый размер */
+  font-weight: 600; /* Жирный текст */
+  color: #333; /* Нейтральный темный цвет */
+  text-align: left; /* Выравнивание влево */
+}
+.buttonGroup {
+  display: flex;
+  gap: 10px; /* Отступ между кнопками (можно настроить значение) */
+  margin-bottom: 20px; /* Отступ снизу, если нужен */
+}
+
+/* Существующий стиль для кнопок */
+.filterButton {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Дополнительные стили, если они у вас есть */
+.filterButton:hover {
+  background-color: #0056b3;
+}
+
+.returnButton {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+  align-self: center;
+}
+
+.returnButton:hover {
+  background-color: #0056b3;
 }

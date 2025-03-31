@@ -38,7 +38,7 @@
 
 .radioInput {
   margin: 0;
-  accent-color: #007bff; /* Цвет основной радио-кнопки */
+  accent-color: #007bff;
 }
 
 .subOptions {
@@ -58,7 +58,7 @@
 
 .subRadioInput {
   margin: 0;
-  accent-color: #007bff; /* Цвет вложенных радио-кнопок */
+  accent-color: #007bff;
 }
 
 .inputGroup {
@@ -104,11 +104,33 @@
   cursor: not-allowed;
 }
 
+.resetButton {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+.resetButton:hover {
+  background-color: #c82333;
+}
+
+.resetButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
 .error {
   margin: 10px 0 0 0;
   font-size: 14px;
   color: red;
 }
+
 .autocomplete {
   position: relative;
   width: 100%;
@@ -138,4 +160,46 @@
 
 .suggestionItem:hover {
   background-color: #f0f0f0;
+}
+
+.timeRangeGroup {
+  margin-top: 15px;
+}
+
+.timeRangeLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.timeRangeSelect {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.timeRangeSelect:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.customRangeInput {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.customRangeInput:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
 }

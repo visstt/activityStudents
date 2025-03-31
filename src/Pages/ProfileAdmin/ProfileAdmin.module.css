@@ -1,67 +1,96 @@
 .profileContainer {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 15px; /* Уменьшаем отступы для мобильных устройств */
+  position: relative;
+}
+
+.backButton {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 30px;
+  height: 30px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.backButton:hover {
+  background-color: #e0e0e0;
+}
+
+.backButton svg {
+  width: 16px;
+  height: 16px;
 }
 
 .title {
-  font-size: 32px;
-  margin-bottom: 20px;
+  margin-top: 50px;
+  font-size: 28px; /* Уменьшаем размер шрифта */
+  margin-bottom: 15px;
   text-align: center;
 }
 
 .profileInfo {
   background-color: #f5f5f5;
-  padding: 20px;
+  padding: 15px; /* Уменьшаем отступы */
   border-radius: 8px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .profileInfo h2 {
-  font-size: 24px;
-  margin-bottom: 15px;
+  font-size: 20px; /* Уменьшаем заголовок */
+  margin-bottom: 10px;
 }
 
 .profileInfo p {
-  margin: 10px 0;
-  font-size: 16px;
+  margin: 8px 0;
+  font-size: 14px; /* Уменьшаем шрифт для компактности */
 }
 
 .eventsSection {
   background-color: #f5f5f5;
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .eventsSection h2 {
-  font-size: 24px;
-  margin-bottom: 15px;
+  font-size: 20px;
+  margin-bottom: 10px;
 }
 
 .addEventForm {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
 }
 
 .eventInput {
   flex: 1;
-  padding: 8px;
+  padding: 6px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .addButton {
-  padding: 8px 16px;
+  padding: 6px 12px;
   background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .addButton:hover {
@@ -77,8 +106,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 8px;
   border-bottom: 1px solid #ddd;
+  font-size: 14px; /* Уменьшаем шрифт */
 }
 
 .eventItem:last-child {
@@ -86,13 +116,13 @@
 }
 
 .deleteButton {
-  padding: 5px 10px;
+  padding: 4px 8px;
   background-color: #ff4444;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .deleteButton:hover {
@@ -101,37 +131,67 @@
 
 .loading {
   text-align: center;
-  padding: 20px;
-  font-size: 18px;
+  padding: 15px;
+  font-size: 16px;
 }
 
 .error {
   text-align: center;
-  padding: 20px;
-  font-size: 18px;
+  padding: 15px;
+  font-size: 16px;
   color: #ff0000;
 }
-.addUserSection {
-  margin-top: 20px;
-  text-align: center;
+
+.actionsSection {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  align-items: center;
 }
 
 .addUserLink {
   display: inline-block;
-  padding: 10px 20px;
-  background-color: #007bff;
+  padding: 8px 16px;
+  background-color: #4caf50;
   color: white;
   text-decoration: none;
   border-radius: 4px;
   transition: background-color 0.3s ease;
+  font-size: 14px;
 }
 
 .addUserLink:hover {
-  background-color: #035ab7;
+  background-color: #45a049;
 }
 
-@media (max-width: 768px) {
+.datePicker {
+  width: 120px; /* Уменьшаем ширину для компактности */
+  padding: 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.logoutButton {
+  padding: 8px 16px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 14px;
+}
+
+.logoutButton:hover {
+  background-color: #cc0000;
+}
+
+/* Планшеты (768px–1024px) */
+@media (max-width: 1024px) {
   .profileContainer {
+    max-width: 100%;
     padding: 10px;
   }
 
@@ -139,21 +199,119 @@
     font-size: 24px;
   }
 
-  .profileInfo h2,
-  .eventsSection h2 {
-    font-size: 20px;
-  }
-
-  .profileInfo,
-  .eventsSection {
-    padding: 15px;
-  }
-
   .addEventForm {
-    flex-direction: column;
+    flex-wrap: wrap; /* Позволяем элементам переноситься */
+    gap: 10px;
+  }
+
+  .eventInput,
+  .datePicker {
+    width: 100%; /* Занимают полную ширину на планшетах */
   }
 
   .addButton {
     width: 100%;
+  }
+
+  .actionsSection {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .addUserLink,
+  .logoutButton {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Телефоны (до 768px) */
+@media (max-width: 768px) {
+  .profileContainer {
+    padding: 8px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .profileInfo h2,
+  .eventsSection h2 {
+    font-size: 18px;
+  }
+
+  .profileInfo,
+  .eventsSection {
+    padding: 10px;
+  }
+
+  .addEventForm {
+    flex-direction: column; /* Столбец для телефонов */
+    gap: 8px;
+  }
+
+  .eventInput,
+  .datePicker {
+    width: 100%;
+  }
+
+  .addButton {
+    width: 100%;
+    padding: 8px;
+  }
+
+  .eventItem {
+    flex-direction: column; /* Элементы списка в столбец */
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .deleteButton {
+    width: 100%;
+    text-align: center;
+  }
+
+  .actionsSection {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .addUserLink,
+  .logoutButton {
+    width: 100%;
+    padding: 8px;
+  }
+}
+
+/* Очень маленькие экраны (до 480px) */
+@media (max-width: 480px) {
+  .title {
+    font-size: 18px;
+  }
+
+  .profileInfo h2,
+  .eventsSection h2 {
+    font-size: 16px;
+  }
+
+  .profileInfo p,
+  .eventItem,
+  .eventInput,
+  .datePicker,
+  .addButton,
+  .deleteButton,
+  .addUserLink,
+  .logoutButton {
+    font-size: 12px; /* Еще меньше шрифт для маленьких экранов */
+  }
+
+  .backButton {
+    width: 25px;
+    height: 25px;
+  }
+
+  .backButton svg {
+    width: 14px;
+    height: 14px;
   }
 }

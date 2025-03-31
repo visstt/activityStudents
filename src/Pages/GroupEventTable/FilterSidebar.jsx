@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "./FilterSidebar.module.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from "date-fns";
+import ru from "date-fns/locale/ru";
 
 const FilterSidebar = ({ onFilterApply, onClose }) => {
   const [filterType, setFilterType] = useState(null);
   const [inputValue, setInputValue] = useState("");
+  const [sort, setSort] = useState("all");
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [groupSuggestions, setGroupSuggestions] = useState([]);
@@ -63,6 +70,19 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     setInputValue(deptId);
   };
 
+  const handleSortChange = (e) => {
+    const value = e.target.value;
+    setSort(value);
+    if (value !== "custom") {
+      setDateRange([null, null]);
+    }
+  };
+
+  const handleDateRangeChange = (dates) => {
+    const [start, end] = dates;
+    setDateRange([start, end]);
+  };
+
   const handleApplyFilter = async () => {
     if (!filterType) {
       setError("Пожалуйста, выберите тип фильтра.");
@@ -74,6 +94,13 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
       return;
     }
 
+    if (sort === "custom" && (!startDate || !endDate)) {
+      setError(
+        "Пожалуйста, выберите начальную и конечную даты для пользовательского диапазона."
+      );
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -81,19 +108,71 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
       let url = "";
       let type = "";
       let filterValue = inputValue;
+      const queryParams = new URLSearchParams();
+      queryParams.append("sort", sort);
+
+      if (sort === "custom" && startDate && endDate) {
+        const customSortValue = `${format(startDate, "dd.MM.yyyy")}-${format(
+          endDate,
+          "dd.MM.yyyy"
+        )}`;
+        queryParams.append("customSort", customSortValue);
+      }
 
       switch (filterType) {
         case "department":
-          url = `http://localhost:3000/department/all`;
+          url = `http://localhost:3000/department/all?${queryParams.toString()}`;
           type = "departments";
+          onFilterApply({
+            data: await axios.get(url).then((res) => res.data),
+            type,
+            sort,
+            customSort:
+              sort === "custom" && startDate && endDate
+                ? `${format(startDate, "dd.MM.yyyy")}-${format(
+                    endDate,
+                    "dd.MM.yyyy"
+                  )}`
+                : null,
+          });
           break;
         case "course":
-          url = `http://localhost:3000/groupe/allCourse/${filterValue}`;
+          url = `http://localhost:3000/groupe/allCourse/${filterValue}?${queryParams.toString()}`;
           type = "groups";
+          onFilterApply({
+            data: await axios.get(url).then((res) => res.data),
+            type,
+            course: filterValue,
+            sort,
+            customSort:
+              sort === "custom" && startDate && endDate
+                ? `${format(startDate, "dd.MM.yyyy")}-${format(
+                    endDate,
+                    "dd.MM.yyyy"
+                  )}`
+                : null,
+          });
           break;
         case "groupByDepartment":
-          url = `http://localhost:3000/groupe/all/${filterValue}`;
+          url = `http://localhost:3000/groupe/all/${filterValue}?${queryParams.toString()}`;
           type = "groups";
+          const selectedDepartment = departments.find(
+            (dept) => String(dept.id) === filterValue
+          );
+          onFilterApply({
+            data: await axios.get(url).then((res) => res.data),
+            type,
+            departmentName:
+              selectedDepartment?.departmentName || "Неизвестное отделение",
+            sort,
+            customSort:
+              sort === "custom" && startDate && endDate
+                ? `${format(startDate, "dd.MM.yyyy")}-${format(
+                    endDate,
+                    "dd.MM.yyyy"
+                  )}`
+                : null,
+          });
           break;
         case "studentsByGroup": {
           const group = groups.find(
@@ -102,22 +181,65 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
           if (!group) {
             throw new Error("Группа с таким названием не найдена.");
           }
-          url = `http://localhost:3000/event-journal/${group.id}`;
+          url = `http://localhost:3000/event-journal/${
+            group.id
+          }?${queryParams.toString()}`;
           type = "students";
+          onFilterApply({
+            data: await axios.get(url).then((res) => res.data),
+            type,
+            groupName: group.groupeName,
+            sort,
+            customSort:
+              sort === "custom" && startDate && endDate
+                ? `${format(startDate, "dd.MM.yyyy")}-${format(
+                    endDate,
+                    "dd.MM.yyyy"
+                  )}`
+                : null,
+          });
           break;
         }
         default:
           break;
       }
-
-      const response = await axios.get(url);
-      onFilterApply(response.data, type); // Передаем данные в родительский компонент
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);
       setError(
         error.message === "Группа с таким названием не найдена."
           ? error.message
           : "Ошибка при загрузке данных. Пожалуйста, попробуйте снова."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetFilters = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const url = "http://localhost:3000/event-journal/allStudents";
+      const response = await axios.get(url);
+
+      onFilterApply({
+        data: response.data,
+        type: "students",
+        sort: "all",
+        customSort: null,
+      });
+
+      // Сбрасываем все состояния
+      setFilterType(null);
+      setInputValue("");
+      setSort("all");
+      setDateRange([null, null]);
+      setGroupSuggestions([]);
+    } catch (error) {
+      console.error("Ошибка при сбросе фильтров:", error);
+      setError(
+        "Ошибка при загрузке списка студентов. Пожалуйста, попробуйте снова."
       );
     } finally {
       setLoading(false);
@@ -236,12 +358,53 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
             )}
           </div>
         )}
+
+        <div className={styles.timeRangeGroup}>
+          <label className={styles.timeRangeLabel}>
+            Сортировка по времени:
+          </label>
+          <select
+            value={sort}
+            onChange={handleSortChange}
+            className={styles.timeRangeSelect}
+            disabled={loading}
+          >
+            <option value="all">Все время</option>
+            <option value="week">Неделя</option>
+            <option value="month">Месяц</option>
+            <option value="halfYear">Полгода</option>
+            <option value="custom">Пользовательский</option>
+          </select>
+          {sort === "custom" && (
+            <DatePicker
+              selectsRange
+              startDate={startDate}
+              endDate={endDate}
+              onChange={handleDateRangeChange}
+              dateFormat="dd.MM.yyyy"
+              locale={ru}
+              placeholderText="Выберите диапазон дат"
+              className={styles.customRangeInput}
+              showPopperArrow={false}
+              disabled={loading}
+            />
+          )}
+        </div>
+
         <button
           onClick={handleApplyFilter}
           disabled={loading}
           className={styles.applyButton}
         >
           {loading ? "Загрузка..." : "Применить фильтр"}
+        </button>
+
+        <button
+          onClick={handleResetFilters}
+          disabled={loading}
+          className={styles.resetButton}
+        >
+          {loading ? "Загрузка..." : "Сбросить фильтры"}
         </button>
       </div>
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import styles from "./Header.module.css";
-import logo from "../../../public/chart.svg";
-import profileIcon from "../../../public/user.svg";
+import logo from "/chart.svg";
+import profileIcon from "/user.svg";
 
 export default function Header() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -56,17 +57,19 @@ export default function Header() {
   return (
     <div className={styles.header}>
       <div className={styles.leftSection}>
-        <img src={logo} alt="logo" />
+        <Link to="/events">
+          <img src={logo} alt="logo" />
+        </Link>
         <h1>Анализ вовлеченности студентов</h1>
       </div>
       {isAdmin && (
-        <a href="/admin" className={styles.profileLink}>
+        <Link to="/admin" className={styles.profileLink}>
           <img
             src={profileIcon}
             alt="Личный кабинет"
             className={styles.profileIcon}
           />
-        </a>
+        </Link>
       )}
     </div>
   );

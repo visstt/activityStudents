@@ -1,7 +1,11 @@
-// ProfileAdmin.jsx
 import React, { useState, useEffect } from "react";
 import styles from "./ProfileAdmin.module.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from "date-fns";
+import ru from "date-fns/locale/ru";
+import Header from "../../Components/Header/Header";
 
 export default function ProfileAdmin() {
   const [userData, setUserData] = useState(null);
@@ -9,6 +13,8 @@ export default function ProfileAdmin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newEventName, setNewEventName] = useState("");
+  const [newEventDate, setNewEventDate] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProfileData();
@@ -71,7 +77,10 @@ export default function ProfileAdmin() {
 
   const handleAddEvent = async (e) => {
     e.preventDefault();
-    if (!newEventName.trim()) return;
+    if (!newEventName.trim() || !newEventDate) {
+      setError("Введите название и дату мероприятия");
+      return;
+    }
 
     const accessToken = document.cookie
       .split("; ")
@@ -79,13 +88,21 @@ export default function ProfileAdmin() {
       ?.split("=")[1];
 
     try {
+      const formattedDate = format(
+        newEventDate,
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        { timeZone: "UTC" }
+      );
       const response = await fetch("http://localhost:3000/event/addEvent", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ eventName: newEventName }),
+        body: JSON.stringify({
+          eventName: newEventName,
+          eventDate: formattedDate,
+        }),
       });
 
       if (!response.ok) {
@@ -93,7 +110,8 @@ export default function ProfileAdmin() {
       }
 
       setNewEventName("");
-      await fetchProfileData(); // Обновляем список мероприятий
+      setNewEventDate(null);
+      await fetchProfileData();
     } catch (err) {
       setError(err.message);
     }
@@ -117,10 +135,20 @@ export default function ProfileAdmin() {
         throw new Error("Ошибка при удалении мероприятия");
       }
 
-      await fetchProfileData(); // Обновляем список мероприятий
+      await fetchProfileData();
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleLogout = () => {
+    document.cookie =
+      "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    navigate("/login");
+  };
+
+  const handleBackToEvents = () => {
+    navigate("/events");
   };
 
   if (loading) {
@@ -132,62 +160,104 @@ export default function ProfileAdmin() {
   }
 
   return (
-    <div className={styles.profileContainer}>
-      <h1 className={styles.title}>Личный кабинет администратора</h1>
+    <>
+      <Header />
 
-      <div className={styles.profileInfo}>
-        <h2>Информация о пользователе</h2>
-        <p>
-          <strong>ФИО:</strong> {userData?.fullName}
-        </p>
-        <p>
-          <strong>Логин:</strong> {userData?.login}
-        </p>
-        <p>
-          <strong>Роль:</strong> {userData?.roleName}
-        </p>
-      </div>
+      <div className={styles.profileContainer}>
+        <button
+          onClick={handleBackToEvents}
+          className={styles.backButton}
+          title="Назад к мероприятиям"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#333"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className={styles.title}>Личный кабинет администратора</h1>
 
-      <div className={styles.eventsSection}>
-        <h2>Список мероприятий</h2>
+        <div className={styles.profileInfo}>
+          <h2>Информация о пользователе</h2>
+          <p>
+            <strong>ФИО:</strong> {userData?.fullName}
+          </p>
+          <p>
+            <strong>Логин:</strong> {userData?.login}
+          </p>
+          <p>
+            <strong>Роль:</strong> {userData?.roleName}
+          </p>
+        </div>
 
-        <form onSubmit={handleAddEvent} className={styles.addEventForm}>
-          <input
-            type="text"
-            value={newEventName}
-            onChange={(e) => setNewEventName(e.target.value)}
-            placeholder="Название нового мероприятия"
-            className={styles.eventInput}
-          />
-          <button type="submit" className={styles.addButton}>
-            Добавить
+        <div className={styles.eventsSection}>
+          <h2>Список мероприятий</h2>
+
+          <form onSubmit={handleAddEvent} className={styles.addEventForm}>
+            <input
+              type="text"
+              value={newEventName}
+              onChange={(e) => setNewEventName(e.target.value)}
+              placeholder="Название нового мероприятия"
+              className={styles.eventInput}
+            />
+            <DatePicker
+              selected={newEventDate}
+              onChange={(date) => setNewEventDate(date)}
+              dateFormat="dd.MM.yyyy"
+              locale={ru}
+              placeholderText="Выберите дату"
+              className={styles.datePicker}
+              showPopperArrow={false}
+            />
+            <button type="submit" className={styles.addButton}>
+              Добавить
+            </button>
+          </form>
+
+          {events.length > 0 ? (
+            <ul className={styles.eventsList}>
+              {events.map((event) => (
+                <li key={event.id} className={styles.eventItem}>
+                  <span>
+                    {event.eventName} (
+                    {new Date(event.eventDate).toLocaleDateString("ru-RU", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                    )
+                  </span>
+                  <button
+                    onClick={() => handleDeleteEvent(event.id)}
+                    className={styles.deleteButton}
+                  >
+                    Удалить
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Мероприятия не найдены</p>
+          )}
+        </div>
+
+        <div className={styles.actionsSection}>
+          <Link to="/admin/add-user" className={styles.addUserLink}>
+            Добавить пользователя
+          </Link>
+          <button onClick={handleLogout} className={styles.logoutButton}>
+            Выйти
           </button>
-        </form>
-
-        {events.length > 0 ? (
-          <ul className={styles.eventsList}>
-            {events.map((event) => (
-              <li key={event.id} className={styles.eventItem}>
-                <span>{event.eventName}</span>
-                <button
-                  onClick={() => handleDeleteEvent(event.id)}
-                  className={styles.deleteButton}
-                >
-                  Удалить
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>Мероприятия не найдены</p>
-        )}
+        </div>
       </div>
-
-      <div className={styles.addUserSection}>
-        <Link to="/admin/add-user" className={styles.addUserLink}>
-          Добавить нового пользователя
-        </Link>
-      </div>
-    </div>
+    </>
   );
 }

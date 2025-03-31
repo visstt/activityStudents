@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./AddUser.module.css";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Добавляем импорт useNavigate
 
 export default function AddUser() {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ export default function AddUser() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
+  const navigate = useNavigate(); // Инициализируем хук navigate
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -96,6 +98,8 @@ export default function AddUser() {
         password: "",
         role: roles[0]?.value || "",
       });
+      // Перенаправление на /admin после успешного добавления
+      navigate("/admin");
     } catch (err) {
       setError(
         err.response?.data?.message || "Ошибка при добавлении пользователя"
