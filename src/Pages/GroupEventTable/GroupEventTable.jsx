@@ -111,6 +111,9 @@ const GroupEventTable = () => {
         return acc;
       }, {});
 
+      console.log("Загруженные события:", eventList); // Логирование событий
+      console.log("Данные посещаемости:", attendanceData); // Логирование attendance
+
       setStudents(studentList);
       setEvents(eventList);
       setAttendance(attendanceData);
@@ -252,7 +255,7 @@ const GroupEventTable = () => {
     }
   };
 
-  const saveAttendance = async (updatedAttendance) => {
+  const saveAttendance = async (studentId, updatedStudentAttendance) => {
     const accessToken = document.cookie
       .split("; ")
       .find((row) => row.startsWith("access_token="))
@@ -265,13 +268,20 @@ const GroupEventTable = () => {
     }
 
     try {
-      const dataToSave = students.map((student) => ({
-        studentId: student.id,
+      const dataToSave = {
+        studentId,
         events: events.map((event) => ({
           name: event.name,
-          point: parseInt(updatedAttendance[student.id][event.key]) || 0,
+          point: parseInt(updatedStudentAttendance[event.key] || "0") || 0,
         })),
-      }));
+      };
+
+      console.log(
+        "Отправляемые данные для студента",
+        studentId,
+        ":",
+        dataToSave
+      ); // Логирование перед отправкой
 
       const response = await fetch(
         "http://localhost:3000/event-journal/save-journal",
@@ -281,15 +291,16 @@ const GroupEventTable = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify(dataToSave),
+          body: JSON.stringify([dataToSave]),
         }
       );
 
       if (!response.ok) {
-        throw new Error("Ошибка при сохранении данных");
+        const errorText = await response.text();
+        throw new Error(`Ошибка при сохранении данных: ${errorText}`);
       }
 
-      console.log("Таблица успешно сохранена");
+      console.log("Данные студента", studentId, "успешно сохранены");
     } catch (error) {
       console.error("Ошибка при сохранении данных:", error);
       setError(error.message);
@@ -305,7 +316,13 @@ const GroupEventTable = () => {
           ...prev,
           [studentId]: { ...prev[studentId], [eventKey]: event.key },
         };
-        saveAttendance(newAttendance);
+        console.log(
+          "Обновленное состояние для",
+          studentId,
+          ":",
+          newAttendance[studentId]
+        ); // Логирование состояния
+        saveAttendance(studentId, newAttendance[studentId]);
         return newAttendance;
       });
     }
@@ -516,7 +533,7 @@ const GroupEventTable = () => {
 
   const handleReturnToMainTable = () => {
     setIsRatingTableVisible(false);
-    setError(null); // Очищаем ошибки при возврате
+    setError(null);
   };
 
   if (loading) return <div className={styles.loading}>Загрузка...</div>;
@@ -567,7 +584,7 @@ const GroupEventTable = () => {
                   <th
                     key={`event-header-${event.key}`}
                     className={
-                      event.name.trim() === "Промежуточная аттестация"
+                      event.name.includes("Промежуточная аттестация")
                         ? styles.highlightedHeader
                         : ""
                     }
@@ -592,19 +609,40 @@ const GroupEventTable = () => {
                     {student.name}
                   </td>
                   {events.map((event) => (
-                    <td key={`attendance-${student.id}-${event.key}`}>
+                    <td
+                      key={`attendance-${student.id}-${event.key}`}
+                      className={
+                        event.name.includes("Промежуточная аттестация")
+                          ? styles.highlightedCell
+                          : ""
+                      }
+                    >
                       <input
                         type="text"
                         value={attendance[student.id][event.key] || ""}
-                        onChange={(e) =>
-                          setAttendance((prev) => ({
-                            ...prev,
-                            [student.id]: {
-                              ...prev[student.id],
-                              [event.key]: e.target.value,
-                            },
-                          }))
-                        }
+                        onChange={(e) => {
+                          const newValue = e.target.value;
+                          setAttendance((prev) => {
+                            const newAttendance = {
+                              ...prev,
+                              [student.id]: {
+                                ...prev[student.id],
+                                [event.key]: newValue,
+                              },
+                            };
+                            console.log(
+                              "Измененные данные для",
+                              student.id,
+                              ":",
+                              newAttendance[student.id]
+                            ); // Логирование перед сохранением
+                            saveAttendance(
+                              student.id,
+                              newAttendance[student.id]
+                            );
+                            return newAttendance;
+                          });
+                        }}
                         onKeyDown={(e) =>
                           handleKeyPress(e, student.id, event.key)
                         }
@@ -619,7 +657,14 @@ const GroupEventTable = () => {
                   <strong>Итого</strong>
                 </td>
                 {events.map((event) => (
-                  <td key={`total-${event.key}`}>
+                  <td
+                    key={`total-${event.key}`}
+                    className={
+                      event.name.includes("Промежуточная аттестация")
+                        ? styles.highlightedCell
+                        : ""
+                    }
+                  >
                     <strong>{getEventStats(event.key)}</strong>
                   </td>
                 ))}
