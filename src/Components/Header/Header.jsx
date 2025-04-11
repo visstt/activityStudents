@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "./Header.module.css";
 import logo from "/chart.svg";
 import profileIcon from "/user.svg";
+import logoutIcon from "/logout.svg"; // Иконка для логаута
 
 export default function Header() {
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -52,6 +54,12 @@ export default function Header() {
     checkAdminStatus();
   }, []);
 
+  const handleLogout = () => {
+    document.cookie =
+      "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    navigate("/login");
+  };
+
   console.log("Текущее значение isAdmin:", isAdmin);
 
   return (
@@ -62,15 +70,20 @@ export default function Header() {
         </Link>
         <h1>Анализ вовлеченности студентов</h1>
       </div>
-      {isAdmin && (
-        <Link to="/admin" className={styles.profileLink}>
-          <img
-            src={profileIcon}
-            alt="Личный кабинет"
-            className={styles.profileIcon}
-          />
+      <div className={styles.rightSection}>
+        {isAdmin && (
+          <Link to="/admin" className={styles.profileLink}>
+            <img
+              src={profileIcon}
+              alt="Личный кабинет"
+              className={styles.profileIcon}
+            />
+          </Link>
+        )}
+        <Link to="/login" onClick={handleLogout} className={styles.profileLink}>
+          <img src={logoutIcon} alt="Выйти" className={styles.profileIcon} />
         </Link>
-      )}
+      </div>
     </div>
   );
 }

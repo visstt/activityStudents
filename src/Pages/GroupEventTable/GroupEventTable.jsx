@@ -42,6 +42,7 @@ const GroupEventTable = () => {
 
   useEffect(() => {
     fetchProfileData();
+    applySavedFilters();
   }, []);
 
   const fetchProfileData = async () => {
@@ -74,7 +75,134 @@ const GroupEventTable = () => {
 
       const profileData = await profileResponse.json();
       setUserData(profileData);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
 
+  const applySavedFilters = async () => {
+    const savedFilters = localStorage.getItem("filters");
+    if (!savedFilters) {
+      // Если фильтров нет, загружаем данные по умолчанию
+      await fetchDefaultData();
+      return;
+    }
+
+    try {
+      const { filterType, inputValue, sort, dateRange } =
+        JSON.parse(savedFilters);
+      if (!filterType) {
+        await fetchDefaultData();
+        return;
+      }
+
+      setLoading(true);
+      let url = "";
+      let type = "";
+      let filterValue = inputValue;
+      const queryParams = new URLSearchParams();
+      queryParams.append("sort", sort || "all");
+
+      if (sort === "custom" && dateRange[0] && dateRange[1]) {
+        const customSortValue = `${format(
+          new Date(dateRange[0]),
+          "dd.MM.yyyy"
+        )}-${format(new Date(dateRange[1]), "dd.MM.yyyy")}`;
+        queryParams.append("customSort", customSortValue);
+      }
+
+      switch (filterType) {
+        case "department":
+          url = `http://localhost:3000/department/all?${queryParams.toString()}`;
+          type = "departments";
+          break;
+        case "course":
+          url = `http://localhost:3000/groupe/allCourse/${filterValue}?${queryParams.toString()}`;
+          type = "groups";
+          break;
+        case "groupByDepartment":
+          url = `http://localhost:3000/groupe/all/${filterValue}?${queryParams.toString()}`;
+          type = "groups";
+          break;
+        case "studentsByGroup":
+          const response = await fetch(`http://localhost:3000/groupe/all`);
+          const groups = await response.json();
+          const group = groups.find(
+            (g) => g.groupeName.toLowerCase() === filterValue.toLowerCase()
+          );
+          if (!group) {
+            throw new Error("Группа с таким названием не найдена.");
+          }
+          url = `http://localhost:3000/event-journal/${
+            group.id
+          }?${queryParams.toString()}`;
+          type = "students";
+          break;
+        default:
+          await fetchDefaultData();
+          return;
+      }
+
+      const dataResponse = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${
+            document.cookie
+              .split("; ")
+              .find((row) => row.startsWith("access_token="))
+              ?.split("=")[1]
+          }`,
+        },
+      });
+
+      if (!dataResponse.ok) {
+        throw new Error("Ошибка при загрузке данных фильтра");
+      }
+
+      const data = await dataResponse.json();
+      handleFilterApply({
+        data,
+        type,
+        groupName: filterType === "studentsByGroup" ? filterValue : undefined,
+        course: filterType === "course" ? filterValue : undefined,
+        departmentName:
+          filterType === "groupByDepartment"
+            ? departments.find((dept) => String(dept.id) === filterValue)
+                ?.departmentName
+            : undefined,
+        sort,
+        customSort:
+          sort === "custom" && dateRange[0] && dateRange[1]
+            ? `${format(new Date(dateRange[0]), "dd.MM.yyyy")}-${format(
+                new Date(dateRange[1]),
+                "dd.MM.yyyy"
+              )}`
+            : null,
+      });
+    } catch (err) {
+      console.error("Ошибка при применении сохраненных фильтров:", err);
+      setError(err.message);
+      await fetchDefaultData();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDefaultData = async () => {
+    const accessToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("access_token="))
+      ?.split("=")[1];
+
+    if (!accessToken) {
+      setError("Токен не найден");
+      setLoading(false);
+      return;
+    }
+
+    try {
       const studentsResponse = await fetch(
         "http://localhost:3000/event-journal/allStudents",
         {
@@ -111,14 +239,15 @@ const GroupEventTable = () => {
         return acc;
       }, {});
 
-      console.log("Загруженные события:", eventList); // Логирование событий
-      console.log("Данные посещаемости:", attendanceData); // Логирование attendance
+      console.log("Загруженные события:", eventList);
+      console.log("Данные посещаемости:", attendanceData);
 
       setStudents(studentList);
       setEvents(eventList);
       setAttendance(attendanceData);
       setGroupName(dataArray[0].groupName || "Все студенты");
       setFilterDescription("Список всех студентов за всё время");
+      setFilterType("students");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -281,7 +410,7 @@ const GroupEventTable = () => {
         studentId,
         ":",
         dataToSave
-      ); // Логирование перед отправкой
+      );
 
       const response = await fetch(
         "http://localhost:3000/event-journal/save-journal",
@@ -321,7 +450,7 @@ const GroupEventTable = () => {
           studentId,
           ":",
           newAttendance[studentId]
-        ); // Логирование состояния
+        );
         saveAttendance(studentId, newAttendance[studentId]);
         return newAttendance;
       });
@@ -573,7 +702,6 @@ const GroupEventTable = () => {
         <p>Текущий фильтр: {filterDescription}</p>
       </div>
 
-      {/* Основная таблица */}
       {!isRatingTableVisible && (
         <div className={styles.tableWrapper}>
           <table className={styles.eventTable}>
@@ -635,7 +763,7 @@ const GroupEventTable = () => {
                               student.id,
                               ":",
                               newAttendance[student.id]
-                            ); // Логирование перед сохранением
+                            );
                             saveAttendance(
                               student.id,
                               newAttendance[student.id]
@@ -674,7 +802,6 @@ const GroupEventTable = () => {
         </div>
       )}
 
-      {/* Таблица рейтинга мероприятий */}
       {isRatingTableVisible && (
         <div className={styles.tableWrapper}>
           <div className={styles.ratingTableContainer}>
@@ -741,7 +868,6 @@ const GroupEventTable = () => {
         </div>
       )}
 
-      {/* Диаграмма */}
       {!isRatingTableVisible && (
         <>
           <button
@@ -760,5 +886,13 @@ const GroupEventTable = () => {
     </div>
   );
 };
+
+// Список отделений для использования в applySavedFilters
+const departments = [
+  { id: 1, departmentName: "Отделение креативных индустрий" },
+  { id: 2, departmentName: "Отделение программирования" },
+  { id: 3, departmentName: "Отделение экономики" },
+  { id: 4, departmentName: "Отделение ИТ и БПЛА" },
+];
 
 export default GroupEventTable;

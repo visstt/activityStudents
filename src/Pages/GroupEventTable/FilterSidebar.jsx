@@ -24,6 +24,37 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     { id: 4, departmentName: "Отделение ИТ и БПЛА" },
   ];
 
+  // Загрузка фильтров из localStorage при монтировании компонента
+  useEffect(() => {
+    const savedFilters = localStorage.getItem("filters");
+    if (savedFilters) {
+      const { filterType, inputValue, sort, dateRange } =
+        JSON.parse(savedFilters);
+      setFilterType(filterType || null);
+      setInputValue(inputValue || "");
+      setSort(sort || "all");
+      setDateRange([
+        dateRange[0] ? new Date(dateRange[0]) : null,
+        dateRange[1] ? new Date(dateRange[1]) : null,
+      ]);
+    }
+  }, []);
+
+  // Сохранение фильтров в localStorage при их изменении
+  useEffect(() => {
+    const filters = {
+      filterType,
+      inputValue,
+      sort,
+      dateRange: [
+        dateRange[0]?.toISOString() || null,
+        dateRange[1]?.toISOString() || null,
+      ],
+    };
+    localStorage.setItem("filters", JSON.stringify(filters));
+  }, [filterType, inputValue, sort, dateRange]);
+
+  // Загрузка групп
   useEffect(() => {
     const fetchGroups = async () => {
       try {
@@ -35,6 +66,14 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     };
     fetchGroups();
   }, []);
+
+  // Автоматическое применение сохраненных фильтров при загрузке
+  useEffect(() => {
+    const savedFilters = localStorage.getItem("filters");
+    if (savedFilters && filterType) {
+      handleApplyFilter(true); // Вызываем с флагом isInitialLoad
+    }
+  }, [groups]); // Зависимость от групп, чтобы убедиться, что они загружены
 
   const handleFilterTypeChange = (e) => {
     setFilterType(e.target.value);
@@ -83,7 +122,7 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     setDateRange([start, end]);
   };
 
-  const handleApplyFilter = async () => {
+  const handleApplyFilter = async (isInitialLoad = false) => {
     if (!filterType) {
       setError("Пожалуйста, выберите тип фильтра.");
       return;
@@ -101,7 +140,9 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
       return;
     }
 
-    setLoading(true);
+    if (!isInitialLoad) {
+      setLoading(true);
+    }
     setError("");
 
     try {
@@ -211,7 +252,9 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
           : "Ошибка при загрузке данных. Пожалуйста, попробуйте снова."
       );
     } finally {
-      setLoading(false);
+      if (!isInitialLoad) {
+        setLoading(false);
+      }
     }
   };
 
@@ -230,12 +273,13 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
         customSort: null,
       });
 
-      // Сбрасываем все состояния
+      // Сбрасываем все состояния и localStorage
       setFilterType(null);
       setInputValue("");
       setSort("all");
       setDateRange([null, null]);
       setGroupSuggestions([]);
+      localStorage.removeItem("filters");
     } catch (error) {
       console.error("Ошибка при сбросе фильтров:", error);
       setError(
@@ -392,7 +436,7 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
         </div>
 
         <button
-          onClick={handleApplyFilter}
+          onClick={() => handleApplyFilter(false)}
           disabled={loading}
           className={styles.applyButton}
         >

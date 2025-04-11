@@ -7,7 +7,11 @@
   margin-bottom: 20px;
   padding: 0 20px;
 }
-
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Расстояние между иконками */
+}
 .leftSection {
   display: flex;
   align-items: center;
