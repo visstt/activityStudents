@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.72.2",
     "axios": "^1.8.1",
     "chart.js": "^4.4.8",
     "date-fns": "^4.1.0",
@@ -19,7 +20,8 @@
     "react-datepicker": "^8.2.1",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.3.0",
-    "react-window": "^1.8.11"
+    "react-window": "^1.8.11",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

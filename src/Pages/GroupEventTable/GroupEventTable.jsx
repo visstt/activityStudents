@@ -5,6 +5,8 @@ import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import Header from "../../Components/Header/Header";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx"; // Добавляем библиотеку для экспорта в Excel
+import { format } from "date-fns"; // Импортируем format для обработки дат
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -84,7 +86,6 @@ const GroupEventTable = () => {
   const applySavedFilters = async () => {
     const savedFilters = localStorage.getItem("filters");
     if (!savedFilters) {
-      // Если фильтров нет, загружаем данные по умолчанию
       await fetchDefaultData();
       return;
     }
@@ -221,26 +222,23 @@ const GroupEventTable = () => {
       const apiData = await studentsResponse.json();
       const dataArray = Array.isArray(apiData) ? apiData : [apiData];
 
-      const studentList = dataArray.map((student) => ({
+      const studentList = dataArray[0].map((student) => ({
         id: student.studentId,
         name: student.fullName,
       }));
 
-      const eventList = dataArray[0].events.map((event, index) => ({
+      const eventList = dataArray[1].events.map((event, index) => ({
         name: event.name,
         key: `event${index + 1}`,
       }));
 
-      const attendanceData = dataArray.reduce((acc, student) => {
+      const attendanceData = dataArray[0].reduce((acc, student) => {
         acc[student.studentId] = {};
         student.events.forEach((event, index) => {
           acc[student.studentId][`event${index + 1}`] = event.point.toString();
         });
         return acc;
       }, {});
-
-      console.log("Загруженные события:", eventList);
-      console.log("Данные посещаемости:", attendanceData);
 
       setStudents(studentList);
       setEvents(eventList);
@@ -405,13 +403,6 @@ const GroupEventTable = () => {
         })),
       };
 
-      console.log(
-        "Отправляемые данные для студента",
-        studentId,
-        ":",
-        dataToSave
-      );
-
       const response = await fetch(
         "http://localhost:3000/event-journal/save-journal",
         {
@@ -445,12 +436,6 @@ const GroupEventTable = () => {
           ...prev,
           [studentId]: { ...prev[studentId], [eventKey]: event.key },
         };
-        console.log(
-          "Обновленное состояние для",
-          studentId,
-          ":",
-          newAttendance[studentId]
-        );
         saveAttendance(studentId, newAttendance[studentId]);
         return newAttendance;
       });
@@ -568,12 +553,46 @@ const GroupEventTable = () => {
           id: student.studentId,
           name: student.fullName,
         }));
-        const eventList = data[0].events.map((event, index) => ({
+        const eventList = data[1].events.map((event, index) => ({
           name: event.name,
           key: `event${index + 1}`,
         }));
+        console.warn(data);
+
         const attendanceData = data.reduce((acc, student) => {
           acc[student.studentId] = {};
+
+          student.events.forEach((event, index) => {
+            acc[student.studentId][`event${index + 1}`] =
+              event.point.toString();
+          });
+          return acc;
+        }, {});
+
+        setStudents(studentList);
+        setEvents(eventList);
+        setAttendance(attendanceData);
+        setGroupName(selectedGroupName || "Все студенты");
+        setFilterDescription(
+          selectedGroupName
+            ? `Студенты группы ${selectedGroupName} ${timeDescription}`
+            : `Список всех студентов ${timeDescription}`
+        );
+        setFilterType("students");
+      } else if (type === "clear") {
+        const studentList = data[0].map((student) => ({
+          id: student.studentId,
+          name: student.fullName,
+        }));
+        const eventList = data[1].events.map((event, index) => ({
+          name: event.name,
+          key: `event${index + 1}`,
+        }));
+        console.warn(data);
+
+        const attendanceData = data[0].reduce((acc, student) => {
+          acc[student.studentId] = {};
+
           student.events.forEach((event, index) => {
             acc[student.studentId][`event${index + 1}`] =
               event.point.toString();
@@ -665,6 +684,45 @@ const GroupEventTable = () => {
     setError(null);
   };
 
+  // Функция экспорта таблицы в Excel
+  const exportToExcel = () => {
+    if (isRatingTableVisible) {
+      // Экспорт таблицы рейтингов
+      const exportData = [
+        [
+          "Название мероприятия",
+          "Ваша оценка",
+          "Общая оценка",
+          "Количество голосов",
+        ],
+        ...eventRatings.map((event) => [
+          event.eventName,
+          event.rating !== null ? event.rating : "",
+          event.all,
+          event.count,
+        ]),
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "EventRatings");
+      XLSX.writeFile(wb, "EventRatings.xlsx");
+    } else {
+      // Экспорт основной таблицы
+      const exportData = [
+        [groupName, ...events.map((event) => event.name)],
+        ...students.map((student) => [
+          student.name,
+          ...events.map((event) => attendance[student.id][event.key] || ""),
+        ]),
+        ["Итого", ...events.map((event) => getEventStats(event.key))],
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "EventTable");
+      XLSX.writeFile(wb, `EventTable_${groupName || "Data"}.xlsx`);
+    }
+  };
+
   if (loading) return <div className={styles.loading}>Загрузка...</div>;
   if (error && !isRatingTableVisible)
     return <div className={styles.error}>Ошибка: {error}</div>;
@@ -682,6 +740,9 @@ const GroupEventTable = () => {
         </button>
         <button className={styles.filterButton} onClick={fetchEventRatings}>
           Оценить мероприятия
+        </button>
+        <button className={styles.filterButton} onClick={exportToExcel}>
+          Экспорт в Excel
         </button>
       </div>
       <div
@@ -758,12 +819,6 @@ const GroupEventTable = () => {
                                 [event.key]: newValue,
                               },
                             };
-                            console.log(
-                              "Измененные данные для",
-                              student.id,
-                              ":",
-                              newAttendance[student.id]
-                            );
                             saveAttendance(
                               student.id,
                               newAttendance[student.id]

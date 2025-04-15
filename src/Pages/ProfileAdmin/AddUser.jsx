@@ -74,11 +74,18 @@ export default function AddUser() {
       .find((row) => row.startsWith("access_token="))
       ?.split("=")[1];
 
+    console.log("Access Token:", accessToken);
+
     if (!accessToken) {
       setError("Токен не найден");
       setLoading(false);
       return;
     }
+
+    console.log("Отправляемые данные:", formData);
+    console.log("Заголовки запроса:", {
+      Authorization: `Bearer ${accessToken}`,
+    });
 
     try {
       const response = await axios.post(
@@ -88,8 +95,10 @@ export default function AddUser() {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
+          withCredentials: true,
         }
       );
+      console.log("Ответ сервера:", response.data);
       console.log("Пользователь успешно добавлен:", response.data);
       setSuccess("Пользователь успешно добавлен");
       setFormData({

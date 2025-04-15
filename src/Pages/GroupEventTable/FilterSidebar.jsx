@@ -263,27 +263,34 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     setError("");
 
     try {
+      // Запрос на сервер для получения всех студентов
       const url = "http://localhost:3000/event-journal/allStudents";
-      const response = await axios.get(url);
+      const response = await axios.get(url, {
+        withCredentials: true, // Добавляем withCredentials для отправки cookies, если требуется
+      });
 
+      // Вызываем onFilterApply с сброшенными фильтрами
       onFilterApply({
         data: response.data,
-        type: "students",
+        type: "clear",
         sort: "all",
         customSort: null,
       });
 
-      // Сбрасываем все состояния и localStorage
+      // Сбрасываем состояния
       setFilterType(null);
       setInputValue("");
       setSort("all");
       setDateRange([null, null]);
       setGroupSuggestions([]);
+
+      // Очищаем localStorage
       localStorage.removeItem("filters");
     } catch (error) {
       console.error("Ошибка при сбросе фильтров:", error);
       setError(
-        "Ошибка при загрузке списка студентов. Пожалуйста, попробуйте снова."
+        error.response?.data?.message ||
+          "Ошибка при загрузке списка студентов. Пожалуйста, попробуйте снова."
       );
     } finally {
       setLoading(false);
