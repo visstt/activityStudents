@@ -24,7 +24,6 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     { id: 4, departmentName: "Отделение ИТ и БПЛА" },
   ];
 
-  // Загрузка фильтров из localStorage при монтировании компонента
   useEffect(() => {
     const savedFilters = localStorage.getItem("filters");
     if (savedFilters) {
@@ -40,7 +39,6 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     }
   }, []);
 
-  // Сохранение фильтров в localStorage при их изменении
   useEffect(() => {
     const filters = {
       filterType,
@@ -54,7 +52,6 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     localStorage.setItem("filters", JSON.stringify(filters));
   }, [filterType, inputValue, sort, dateRange]);
 
-  // Загрузка групп
   useEffect(() => {
     const fetchGroups = async () => {
       try {
@@ -67,13 +64,12 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     fetchGroups();
   }, []);
 
-  // Автоматическое применение сохраненных фильтров при загрузке
   useEffect(() => {
     const savedFilters = localStorage.getItem("filters");
     if (savedFilters && filterType) {
-      handleApplyFilter(true); // Вызываем с флагом isInitialLoad
+      handleApplyFilter(true);
     }
-  }, [groups]); // Зависимость от групп, чтобы убедиться, что они загружены
+  }, [groups]);
 
   const handleFilterTypeChange = (e) => {
     setFilterType(e.target.value);
@@ -263,13 +259,11 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
     setError("");
 
     try {
-      // Запрос на сервер для получения всех студентов
       const url = "http://localhost:3000/event-journal/allStudents";
       const response = await axios.get(url, {
-        withCredentials: true, // Добавляем withCredentials для отправки cookies, если требуется
+        withCredentials: true,
       });
 
-      // Вызываем onFilterApply с сброшенными фильтрами
       onFilterApply({
         data: response.data,
         type: "clear",
@@ -277,14 +271,12 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
         customSort: null,
       });
 
-      // Сбрасываем состояния
       setFilterType(null);
       setInputValue("");
       setSort("all");
       setDateRange([null, null]);
       setGroupSuggestions([]);
 
-      // Очищаем localStorage
       localStorage.removeItem("filters");
     } catch (error) {
       console.error("Ошибка при сбросе фильтров:", error);
@@ -300,124 +292,89 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
   return (
     <div className={styles.filterSidebar}>
       <h3 className={styles.title}>Фильтры</h3>
-      <div className={styles.radioGroup}>
-        <label className={styles.radioLabel}>
-          <input
-            type="radio"
-            value="department"
-            checked={filterType === "department"}
-            onChange={handleFilterTypeChange}
-            className={styles.radioInput}
-          />
+      <div className={styles.selectGroup}>
+        <button
+          onClick={() =>
+            handleFilterTypeChange({ target: { value: "department" } })
+          }
+          className={`${styles.departmentButton} ${
+            filterType === "department" ? styles.active : ""
+          }`}
+          disabled={loading}
+        >
           Список отделений
-        </label>
+        </button>
 
-        <div className={styles.filterOption}>
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              value="course"
-              checked={filterType === "course"}
-              onChange={handleFilterTypeChange}
-              className={styles.radioInput}
-            />
+        <select
+          value={filterType === "course" ? inputValue : ""}
+          onChange={(e) => {
+            setFilterType("course");
+            handleCourseSelect(e.target.value);
+          }}
+          className={styles.selectInput}
+          disabled={loading}
+        >
+          <option value="" disabled>
             По курсу
-          </label>
-          {filterType === "course" && (
-            <div className={styles.subOptions}>
-              {[1, 2, 3, 4].map((course) => (
-                <label key={course} className={styles.subRadioLabel}>
-                  <input
-                    type="radio"
-                    value={course}
-                    checked={inputValue === String(course)}
-                    onChange={() => handleCourseSelect(String(course))}
-                    className={styles.subRadioInput}
-                    disabled={loading}
-                  />
-                  Курс {course}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
+          </option>
+          {[1, 2, 3, 4].map((course) => (
+            <option key={course} value={course}>
+              Курс {course}
+            </option>
+          ))}
+        </select>
 
-        <div className={styles.filterOption}>
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              value="groupByDepartment"
-              checked={filterType === "groupByDepartment"}
-              onChange={handleFilterTypeChange}
-              className={styles.radioInput}
-            />
+        <select
+          value={filterType === "groupByDepartment" ? inputValue : ""}
+          onChange={(e) => {
+            setFilterType("groupByDepartment");
+            handleDepartmentSelect(e.target.value);
+          }}
+          className={styles.selectInput}
+          disabled={loading}
+        >
+          <option value="" disabled>
             Группы по отделению
-          </label>
-          {filterType === "groupByDepartment" && (
-            <div className={styles.subOptions}>
-              {departments.map((dept) => (
-                <label key={dept.id} className={styles.subRadioLabel}>
-                  <input
-                    type="radio"
-                    value={dept.id}
-                    checked={inputValue === String(dept.id)}
-                    onChange={() => handleDepartmentSelect(String(dept.id))}
-                    className={styles.subRadioInput}
-                    disabled={loading}
-                  />
-                  {dept.departmentName}
-                </label>
+          </option>
+          {departments.map((dept) => (
+            <option key={dept.id} value={dept.id}>
+              {dept.departmentName}
+            </option>
+          ))}
+        </select>
+
+        <div className={styles.autocomplete}>
+          <input
+            type="text"
+            value={filterType === "studentsByGroup" ? inputValue : ""}
+            onChange={(e) => {
+              setFilterType("studentsByGroup");
+              handleInputChange(e);
+            }}
+            placeholder="Студенты по группе"
+            className={styles.textInput}
+            disabled={loading}
+          />
+          {filterType === "studentsByGroup" && groupSuggestions.length > 0 && (
+            <ul className={styles.suggestionsList}>
+              {groupSuggestions.map((group) => (
+                <li
+                  key={group.id}
+                  className={styles.suggestionItem}
+                  onClick={() => handleSuggestionClick(group.groupeName)}
+                >
+                  {group.groupeName}
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
-
-        <label className={styles.radioLabel}>
-          <input
-            type="radio"
-            value="studentsByGroup"
-            checked={filterType === "studentsByGroup"}
-            onChange={handleFilterTypeChange}
-            className={styles.radioInput}
-          />
-          Студенты по группе
-        </label>
-      </div>
-
-      <div className={styles.inputGroup}>
-        {filterType === "studentsByGroup" && (
-          <div className={styles.autocomplete}>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-              placeholder="Введите название группы"
-              className={styles.textInput}
-            />
-            {groupSuggestions.length > 0 && (
-              <ul className={styles.suggestionsList}>
-                {groupSuggestions.map((group) => (
-                  <li
-                    key={group.id}
-                    className={styles.suggestionItem}
-                    onClick={() => handleSuggestionClick(group.groupeName)}
-                  >
-                    {group.groupeName}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
 
         <div className={styles.timeRangeGroup}>
-          <label className={styles.timeRangeLabel}>
-            Сортировка по времени:
-          </label>
           <select
             value={sort}
             onChange={handleSortChange}
-            className={styles.timeRangeSelect}
+            className={styles.selectInput}
             disabled={loading}
           >
             <option value="all">Все время</option>
@@ -435,29 +392,29 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
               dateFormat="dd.MM.yyyy"
               locale={ru}
               placeholderText="Выберите диапазон дат"
-              className={styles.customRangeInput}
+              className={styles.selectInput}
               showPopperArrow={false}
               disabled={loading}
             />
           )}
         </div>
-
-        <button
-          onClick={() => handleApplyFilter(false)}
-          disabled={loading}
-          className={styles.applyButton}
-        >
-          {loading ? "Загрузка..." : "Применить фильтр"}
-        </button>
-
-        <button
-          onClick={handleResetFilters}
-          disabled={loading}
-          className={styles.resetButton}
-        >
-          {loading ? "Загрузка..." : "Сбросить фильтры"}
-        </button>
       </div>
+
+      <button
+        onClick={() => handleApplyFilter(false)}
+        disabled={loading}
+        className={styles.applyButton}
+      >
+        {loading ? "Загрузка..." : "Применить"}
+      </button>
+
+      <button
+        onClick={handleResetFilters}
+        disabled={loading}
+        className={styles.resetButton}
+      >
+        {loading ? "Загрузка..." : "Очистить"}
+      </button>
 
       {error && <p className={styles.error}>{error}</p>}
     </div>
