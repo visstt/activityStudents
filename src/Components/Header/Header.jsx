@@ -2,15 +2,32 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./Header.module.css";
 
-export default function Header({ onRateEventsClick }) {
+export default function Header({
+  onRateEventsClick,
+  onReturnToMainTable,
+  isRatingTableVisible,
+}) {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [userData, setUserData] = useState({
-    fullName: "Селиверстов С.А.",
-    roleName: "Директор",
-  });
+  const [userData, setUserData] = useState({});
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  // Функция для форматирования ФИО
+  const formatName = (fullName) => {
+    if (!fullName || typeof fullName !== "string") return "Неизвестно";
+
+    const parts = fullName.trim().split(/\s+/);
+
+    if (parts.length === 0) return "Неизвестно";
+    if (parts.length === 1) return parts[0]; // Только фамилия
+
+    const lastName = parts[0]; // Фамилия (первый элемент в русском формате)
+    const firstNameInitial = parts[1]?.[0] ? `${parts[1][0]}.` : ""; // Инициал имени
+    const patronymicInitial = parts[2]?.[0] ? `${parts[2][0]}.` : ""; // Инициал отчества
+
+    return `${lastName} ${firstNameInitial}${patronymicInitial}`.trim();
+  };
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -44,7 +61,7 @@ export default function Header({ onRateEventsClick }) {
         console.log("Полученные данные от сервера:", data);
 
         setUserData({
-          fullName: data.fullName || "Неизвестный пользователь",
+          fullName: data.fullName || "Неизвестно",
           roleName: data.roleName || "Роль не указана",
         });
 
@@ -100,13 +117,23 @@ export default function Header({ onRateEventsClick }) {
           </div>
           <div className={styles.nav_section}>
             <ul>
-              <li className={styles.active}>
-                <Link to="/events">Основная таблица</Link>
+              <li className={!isRatingTableVisible ? styles.active : ""}>
+                <Link to="/events" onClick={onReturnToMainTable}>
+                  Основная таблица
+                </Link>
               </li>
-              <li>
-                <span onClick={onRateEventsClick} style={{ cursor: "pointer" }}>
-                  Оценка мероприятия
-                </span>
+              <li className={isRatingTableVisible ? styles.active : ""}>
+                <button
+                  onClick={onRateEventsClick}
+                  className={styles.rateButton}
+                  style={{
+                    cursor: "pointer",
+                    background: "none",
+                    border: "none",
+                  }}
+                >
+                  Оценить мероприятия
+                </button>
               </li>
             </ul>
           </div>
@@ -118,7 +145,7 @@ export default function Header({ onRateEventsClick }) {
               ref={dropdownRef}
             >
               <div className={styles.user_info}>
-                <h2>{userData.fullName}</h2>
+                <h2>{formatName(userData.fullName)}</h2>
                 <p>{userData.roleName}</p>
               </div>
               <img

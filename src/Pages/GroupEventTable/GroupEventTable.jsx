@@ -177,7 +177,7 @@ const GroupEventTable = () => {
           type = "groups";
           break;
         case "groupByDepartment":
-          url = `http://localhost:3000/groupe/all/${filterValue}?${queryParams.toString()}`;
+          url = `http://localhost:3200/groupe/all/${filterValue}?${queryParams.toString()}`;
           type = "groups";
           break;
         case "studentsByGroup":
@@ -999,7 +999,11 @@ const GroupEventTable = () => {
 
   return (
     <>
-      <Header />
+      <Header
+        onRateEventsClick={fetchEventRatings}
+        onReturnToMainTable={handleReturnToMainTable}
+        isRatingTableVisible={isRatingTableVisible}
+      />
 
       <div className="container">
         <div className={styles.parent}>
@@ -1059,13 +1063,6 @@ const GroupEventTable = () => {
               <div className={styles.button_section}>
                 <button className={styles.filter_btn} onClick={toggleSidebar}>
                   Фильтры
-                </button>
-                <button
-                  className={styles.filter_btn}
-                  onClick={fetchEventRatings}
-                  style={{ marginLeft: "10px" }}
-                >
-                  Оценить мероприятия
                 </button>
                 <button
                   className={styles.filter_btn}
@@ -1157,12 +1154,6 @@ const GroupEventTable = () => {
                       })}
                     </tbody>
                   </table>
-                  <button
-                    className={tableStyles.returnButton}
-                    onClick={handleReturnToMainTable}
-                  >
-                    Вернуться к основной таблице
-                  </button>
                 </div>
               ) : (
                 <table className={tableStyles.eventTable}>

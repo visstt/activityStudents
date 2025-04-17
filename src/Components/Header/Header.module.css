@@ -33,9 +33,15 @@ header {
   font-size: 18px;
   cursor: pointer;
 }
-.nav_section .active {
+.nav_section li.active a,
+.nav_section li.active button {
   font-weight: 600;
   color: #4570ff;
+}
+.nav_section li a,
+.nav_section li button {
+  font-weight: 400;
+  color: #333;
 }
 .user_section {
   display: flex;
@@ -103,8 +109,12 @@ header {
 .dropdown li a:hover {
   background-color: #f1f2f6;
 }
-
 a {
   color: #4570ff;
   text-decoration: none;
+}
+.rateButton {
+  font-size: 18px;
+  padding: 8px 16px;
+  cursor: pointer;
 }
