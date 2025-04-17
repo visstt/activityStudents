@@ -88,14 +88,13 @@ header {
   padding: 10px 0;
   margin: 5px 0 0 0;
   z-index: 1000;
-  min-width: 200px;
+  min-width: 230px;
 }
 .dropdown li {
   padding: 10px 20px;
   font-family: Jost;
   font-size: 16px;
   font-weight: 400;
-  color: #333;
   cursor: pointer;
 }
 .dropdown li:hover {
@@ -117,4 +116,7 @@ a {
   font-size: 18px;
   padding: 8px 16px;
   cursor: pointer;
+}
+.logout {
+  color: rgb(235, 22, 22);
 }

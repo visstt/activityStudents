@@ -165,7 +165,9 @@ export default function Header({
                       </Link>
                     </li>
                   )}
-                  <li onClick={handleLogout}>Выйти</li>
+                  <li onClick={handleLogout} className={styles.logout}>
+                    Выйти
+                  </li>
                 </ul>
               )}
             </div>
