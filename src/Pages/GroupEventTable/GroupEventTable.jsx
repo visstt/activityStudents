@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import styles from "./GroupEventTable.module.css";
+import styles from "./GroupEventTable.module.css"; // Use Grid.module.css for layout
+import tableStyles from "./GroupEventTable.module.css"; // Use GroupEventTable.module.css for table styling
 import FilterSidebar from "./FilterSidebar";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -15,12 +16,12 @@ const CustomTooltip = ({ title, children }) => {
 
   return (
     <div
-      className={styles.tooltipWrapper}
+      className={tableStyles.tooltipWrapper}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {children}
-      {isHovered && <div className={styles.customTooltip}>{title}</div>}
+      {isHovered && <div className={tableStyles.customTooltip}>{title}</div>}
     </div>
   );
 };
@@ -29,12 +30,12 @@ const GroupEventTable = () => {
   const [students, setStudents] = useState([]);
   const [events, setEvents] = useState([]);
   const [attendance, setAttendance] = useState({});
-  const [groupName, setGroupName] = useState();
+  const [groupName, setGroupName] = useState("");
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [filterType, setFilterType] = useState("students");
-  const [isChartVisible, setIsChartVisible] = useState(false);
+  const [isChartVisible, setIsChartVisible] = useState(true); // Chart visible by default
   const [filterDescription, setFilterDescription] = useState("");
   const [isRatingTableVisible, setIsRatingTableVisible] = useState(false);
   const [eventRatings, setEventRatings] = useState([]);
@@ -43,6 +44,7 @@ const GroupEventTable = () => {
   const [groups, setGroups] = useState([]);
   const [topEntities, setTopEntities] = useState({ type: "", data: [] });
   const [topOrganizers, setTopOrganizers] = useState([]);
+  const [isLegendVisible, setIsLegendVisible] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -76,7 +78,7 @@ const GroupEventTable = () => {
       }
 
       const data = await response.json();
-      setTopOrganizers(data.slice(0, 5)); // Берем только топ-5
+      setTopOrganizers(data.slice(0, 5));
     } catch (error) {
       console.error("Ошибка при загрузке топа организаторов:", error);
       setError(error.message);
@@ -118,6 +120,21 @@ const GroupEventTable = () => {
       setError(err.message);
       setLoading(false);
     }
+  };
+
+  const formatName = (fullName) => {
+    if (!fullName || typeof fullName !== "string") return "Неизвестно";
+
+    const parts = fullName.trim().split(/\s+/);
+
+    if (parts.length === 0) return "Неизвестно";
+    if (parts.length === 1) return parts[0]; // Только фамилия
+
+    const lastName = parts[0]; // Фамилия (первый элемент в русском формате)
+    const firstNameInitial = parts[1]?.[0] ? `${parts[1][0]}.` : ""; // Инициал имени
+    const patronymicInitial = parts[2]?.[0] ? `${parts[2][0]}.` : ""; // Инициал отчества
+
+    return `${lastName} ${firstNameInitial}${patronymicInitial}`.trim();
   };
 
   const applySavedFilters = async () => {
@@ -181,6 +198,11 @@ const GroupEventTable = () => {
           await fetchDefaultData();
           return;
       }
+
+      const accessToken = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("access_token="))
+        ?.split("=")[1];
 
       const dataResponse = await fetch(url, {
         method: "GET",
@@ -554,7 +576,7 @@ const GroupEventTable = () => {
         }
       );
       const data = await response.json();
-      return Array.isArray(data) ? data[0] : [data];
+      return Array.isArray(data) ? data : [data];
     } catch (error) {
       console.error("Ошибка при загрузке всех студентов:", error);
       return [];
@@ -567,7 +589,6 @@ const GroupEventTable = () => {
     }
 
     if (filterType === "students" && !groupName.includes("Все студенты")) {
-      // Топ-5 студентов в выбранной группе
       const topStudents = students
         .map((student) => ({
           name: student.name,
@@ -575,10 +596,8 @@ const GroupEventTable = () => {
         }))
         .sort((a, b) => b.points - a.points)
         .slice(0, 5);
-
       return { type: "students", data: topStudents };
     } else if (filterType === "students") {
-      // Топ-5 групп
       const groupPoints = students.reduce((acc, student) => {
         const group = student.groupName || "Без группы";
         const points = getStudentTotalPoints(student.id);
@@ -590,10 +609,8 @@ const GroupEventTable = () => {
         .map(([name, points]) => ({ name, points }))
         .sort((a, b) => b.points - a.points)
         .slice(0, 5);
-
       return { type: "groups", data: topGroups };
     } else if (filterType === "groups" || filterType === "departments") {
-      // Топ-5 студентов из всех групп или отделений
       return async () => {
         const allStudents = await fetchAllStudents();
         const topStudents = allStudents
@@ -606,11 +623,9 @@ const GroupEventTable = () => {
           }))
           .sort((a, b) => b.points - a.points)
           .slice(0, 5);
-
         return { type: "students", data: topStudents };
       };
     }
-
     return { type: "", data: [] };
   }, [students, attendance, filterType, groupName]);
 
@@ -751,7 +766,7 @@ const GroupEventTable = () => {
         position: "top",
         labels: { boxWidth: 20, padding: 10, font: { size: 14 } },
         align: "start",
-        display: true,
+        display: isLegendVisible, // Динамическая видимость легенды
       },
       tooltip: {
         callbacks: {
@@ -811,7 +826,7 @@ const GroupEventTable = () => {
             "Без группы",
           groupeId: student.groupeId || null,
         }));
-        const eventList = data[1].events.map((event, index) => ({
+        const eventList = data[0].events.map((event, index) => ({
           name: event.name,
           key: `event${index + 1}`,
         }));
@@ -929,8 +944,6 @@ const GroupEventTable = () => {
     }
   };
 
-  const toggleChartVisibility = () => setIsChartVisible((prev) => !prev);
-
   const handleStudentClick = (studentId) => {
     if (filterType === "students") {
       navigate(`/student/profile/${studentId}`);
@@ -978,255 +991,279 @@ const GroupEventTable = () => {
     }
   };
 
-  if (loading) return <div className={styles.loading}>Загрузка...</div>;
+  if (loading) return <div className={tableStyles.loading}>Загрузка...</div>;
   if (error && !isRatingTableVisible)
-    return <div className={styles.error}>Ошибка: {error}</div>;
+    return <div className={tableStyles.error}>Ошибка: {error}</div>;
   if (!students.length || !events.length)
-    return <div className={styles.noData}>Нет данных для отображения</div>;
+    return <div className={tableStyles.noData}>Нет данных для отображения</div>;
 
   return (
-    <div className={styles.container}>
+    <>
       <Header />
-      <div className={styles.buttonGroup}>
-        <button className={styles.filterButton} onClick={toggleSidebar}>
-          Фильтры
-        </button>
-        <button className={styles.filterButton} onClick={fetchEventRatings}>
-          Оценить мероприятия
-        </button>
-        <button className={styles.filterButton} onClick={exportToExcel}>
-          Экспорт в Excel
-        </button>
-      </div>
-      <div
-        className={`${styles.sidebar} ${
-          isSidebarOpen ? styles.sidebarOpen : ""
-        }`}
-      >
-        <FilterSidebar
-          onFilterApply={handleFilterApply}
-          onClose={toggleSidebar}
-        />
-        <button onClick={toggleSidebar}>Закрыть</button>
-      </div>
-      {isSidebarOpen && (
-        <div className={styles.overlay} onClick={toggleSidebar}></div>
-      )}
-      <div className={styles.filterInfo}>
-        <p>Текущий фильтр: {filterDescription}</p>
-      </div>
 
-      {!isRatingTableVisible && (
-        <div className={styles.tableWrapper}>
-          <table className={styles.eventTable}>
-            <thead>
-              <tr key="header-row">
-                <th key="group-name">{groupName}</th>
-                {events.map((event) => (
-                  <th
-                    key={`event-header-${event.key}`}
-                    className={
-                      event.name.includes("Промежуточная аттестация")
-                        ? styles.highlightedHeader
-                        : ""
-                    }
-                  >
-                    <CustomTooltip title={event.name}>
-                      <span className={styles.eventName}>{event.name}</span>
-                    </CustomTooltip>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((student) => (
-                <tr key={`student-${student.id}`}>
-                  <td
-                    key={`student-name-${student.id}`}
-                    onClick={() => handleStudentClick(student.id)}
-                    className={`${styles.studentNameCell} ${
-                      filterType === "students" ? styles.clickable : ""
-                    }`}
-                  >
-                    {student.name}
-                  </td>
-                  {events.map((event) => (
-                    <td
-                      key={`attendance-${student.id}-${event.key}`}
-                      className={
-                        event.name.includes("Промежуточная аттестация")
-                          ? styles.highlightedCell
-                          : ""
-                      }
-                    >
-                      <input
-                        type="text"
-                        value={attendance[student.id][event.key] || ""}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          setAttendance((prev) => {
-                            const newAttendance = {
-                              ...prev,
-                              [student.id]: {
-                                ...prev[student.id],
-                                [event.key]: newValue,
-                              },
-                            };
-                            saveAttendance(
-                              student.id,
-                              newAttendance[student.id]
-                            );
-                            return newAttendance;
-                          });
-                        }}
-                        onKeyDown={(e) =>
-                          handleKeyPress(e, student.id, event.key)
-                        }
-                        className={styles.attendanceInput}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-              <tr key="total-row">
-                <td key="total-label">
-                  <strong>Итого</strong>
-                </td>
-                {events.map((event) => (
-                  <td
-                    key={`total-${event.key}`}
-                    className={
-                      event.name.includes("Промежуточная аттестация")
-                        ? styles.highlightedCell
-                        : ""
-                    }
-                  >
-                    <strong>{getEventStats(event.key)}</strong>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {isRatingTableVisible && (
-        <div className={styles.tableWrapper}>
-          <div className={styles.ratingTableContainer}>
-            {error && (
-              <div
-                style={{
-                  color: "red",
-                  marginBottom: "10px",
-                }}
-              >
-                Ошибка: {error}
-              </div>
-            )}
-            <table className={styles.eventTable}>
-              <thead>
-                <tr>
-                  <th>Название мероприятия</th>
-                  <th>Ваша оценка</th>
-                  <th>Общая оценка</th>
-                  <th>Количество голосов</th>
-                </tr>
-              </thead>
-              <tbody>
-                {eventRatings.map((event) => {
-                  const maxRating = getMaxRatingByRole(userData?.roleName);
-                  return (
-                    <tr key={`rating-${event.eventId}`}>
-                      <td>{event.eventName}</td>
-                      <td>
-                        <input
-                          type="text"
-                          value={event.rating !== null ? event.rating : ""}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setEventRatings((prev) =>
-                              prev.map((item) =>
-                                item.eventId === event.eventId
-                                  ? { ...item, rating: value }
-                                  : item
-                              )
-                            );
-                          }}
-                          onBlur={(e) =>
-                            saveEventRating(event.eventId, e.target.value)
-                          }
-                          className={styles.attendanceInput}
-                          placeholder={`0-${maxRating}`}
-                        />
-                      </td>
-                      <td>{event.all}</td>
-                      <td>{event.count}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            <button
-              className={styles.returnButton}
-              onClick={handleReturnToMainTable}
-            >
-              Вернуться к основной таблице
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!isRatingTableVisible && (
-        <>
-          <button
-            className={styles.toggleChartButton}
-            onClick={toggleChartVisibility}
-          >
-            {isChartVisible ? "Скрыть диаграмму" : "Показать диаграмму"}
-          </button>
+      <div className="container">
+        <div className={styles.parent}>
+          {/* Pie Chart in .div1 */}
           {isChartVisible && (
-            <div className={styles.chartContainer}>
+            <div className={`${styles.div1} ${styles.div}`}>
               <Pie data={generateChartData} options={chartOptions} />
             </div>
           )}
-          <div className={styles.topSection}>
-            {topEntities.data.length > 0 && (
-              <div className={styles.topContainer}>
-                <h3>
-                  Топ-5 {topEntities.type === "groups" ? "групп" : "студентов"}{" "}
-                  по баллам
-                </h3>
-                <ul className={styles.topList}>
-                  {topEntities.data.map((item, index) => (
-                    <li key={`top-entity-${index}`} className={styles.topItem}>
-                      {index + 1}. {item.name} - {item.points} баллов
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {topOrganizers.length > 0 && (
-              <div className={styles.topContainer}>
-                <h3>Топ-5 организаторов мероприятий</h3>
-                <ul className={styles.topList}>
-                  {topOrganizers.map((organizer, index) => (
-                    <li
-                      key={`top-organizer-${organizer.id}`}
-                      className={styles.topItem}
-                    >
-                      {index + 1}. {organizer.fullName} - {organizer.eventCount}{" "}
-                      {organizer.eventCount === 1
-                        ? "мероприятие"
-                        : "мероприятий"}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+
+          {/* Top Students/Groups in .div2 */}
+          <div className={`${styles.div2} ${styles.div}`}>
+            <h2>
+              {topEntities.type === "groups"
+                ? "Список лучших групп"
+                : "Список лучших студентов"}
+            </h2>
+            <ol>
+              {topEntities.data.length > 0 ? (
+                topEntities.data.map((item, index) => (
+                  <li key={`top-entity-${index}`}>
+                    <b>{item.name}</b> - {item.points} баллов
+                  </li>
+                ))
+              ) : (
+                <li>Нет данных</li>
+              )}
+            </ol>
           </div>
-        </>
-      )}
-    </div>
+
+          <div className={`${styles.div3} ${styles.div}`}>
+            <h2>Список лучших организаторов</h2>
+            <ol>
+              {topOrganizers.length > 0 ? (
+                topOrganizers.map((organizer, index) => (
+                  <li key={`top-organizer-${organizer.id}`}>
+                    <b>{formatName(organizer.fullName)}</b> -{" "}
+                    {organizer.eventCount}{" "}
+                    {organizer.eventCount === 1 ? "мероприятие" : "мероприятий"}
+                  </li>
+                ))
+              ) : (
+                <li>Нет данных</li>
+              )}
+            </ol>
+          </div>
+
+          {/* Filter Info, Buttons, and Table in .div4 */}
+          <div className={`${styles.div4} ${styles.div}`}>
+            <div className={styles.filter_wrapper}>
+              <div className={styles.name_section}>
+                <p>Выбранный фильтр</p>
+                <div className={styles.block}>
+                  <p>{filterDescription || "Все студенты"}</p>
+                </div>
+              </div>
+              <div className={styles.button_section}>
+                <button className={styles.filter_btn} onClick={toggleSidebar}>
+                  Фильтры
+                </button>
+                <button
+                  className={styles.filter_btn}
+                  onClick={fetchEventRatings}
+                  style={{ marginLeft: "10px" }}
+                >
+                  Оценить мероприятия
+                </button>
+                <button
+                  className={styles.filter_btn}
+                  onClick={exportToExcel}
+                  style={{ marginLeft: "10px" }}
+                >
+                  Экспорт в Excel
+                </button>
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div
+              className={`${tableStyles.sidebar} ${
+                isSidebarOpen ? tableStyles.sidebarOpen : ""
+              }`}
+            >
+              <FilterSidebar
+                onFilterApply={handleFilterApply}
+                onClose={toggleSidebar}
+              />
+              <button onClick={toggleSidebar}>Закрыть</button>
+            </div>
+            {isSidebarOpen && (
+              <div
+                className={tableStyles.overlay}
+                onClick={toggleSidebar}
+              ></div>
+            )}
+
+            {/* Main Table or Rating Table */}
+            <div className={tableStyles.tableWrapper}>
+              {isRatingTableVisible ? (
+                <div className={tableStyles.ratingTableContainer}>
+                  {error && (
+                    <div
+                      style={{
+                        color: "red",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      Ошибка: {error}
+                    </div>
+                  )}
+                  <table className={tableStyles.eventTable}>
+                    <thead>
+                      <tr>
+                        <th>Название мероприятия</th>
+                        <th>Ваша оценка</th>
+                        <th>Общая оценка</th>
+                        <th>Количество голосов</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {eventRatings.map((event) => {
+                        const maxRating = getMaxRatingByRole(
+                          userData?.roleName
+                        );
+                        return (
+                          <tr key={`rating-${event.eventId}`}>
+                            <td>{event.eventName}</td>
+                            <td>
+                              <input
+                                type="text"
+                                value={
+                                  event.rating !== null ? event.rating : ""
+                                }
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  setEventRatings((prev) =>
+                                    prev.map((item) =>
+                                      item.eventId === event.eventId
+                                        ? { ...item, rating: value }
+                                        : item
+                                    )
+                                  );
+                                }}
+                                onBlur={(e) =>
+                                  saveEventRating(event.eventId, e.target.value)
+                                }
+                                className={tableStyles.attendanceInput}
+                                placeholder={`0-${maxRating}`}
+                              />
+                            </td>
+                            <td>{event.all}</td>
+                            <td>{event.count}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  <button
+                    className={tableStyles.returnButton}
+                    onClick={handleReturnToMainTable}
+                  >
+                    Вернуться к основной таблице
+                  </button>
+                </div>
+              ) : (
+                <table className={tableStyles.eventTable}>
+                  <thead>
+                    <tr key="header-row">
+                      <th key="group-name">{groupName}</th>
+                      {events.map((event) => (
+                        <th
+                          key={`event-header-${event.key}`}
+                          className={
+                            event.name.includes("Промежуточная аттестация")
+                              ? tableStyles.highlightedHeader
+                              : ""
+                          }
+                        >
+                          <CustomTooltip title={event.name}>
+                            <span className={tableStyles.eventName}>
+                              {event.name}
+                            </span>
+                          </CustomTooltip>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {students.map((student) => (
+                      <tr key={`student-${student.id}`}>
+                        <td
+                          key={`student-name-${student.id}`}
+                          onClick={() => handleStudentClick(student.id)}
+                          className={`${tableStyles.studentNameCell} ${
+                            filterType === "students"
+                              ? tableStyles.clickable
+                              : ""
+                          }`}
+                        >
+                          {student.name}
+                        </td>
+                        {events.map((event) => (
+                          <td
+                            key={`attendance-${student.id}-${event.key}`}
+                            className={
+                              event.name.includes("Промежуточная аттестация")
+                                ? tableStyles.highlightedCell
+                                : ""
+                            }
+                          >
+                            <input
+                              type="text"
+                              value={attendance[student.id][event.key] || ""}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                setAttendance((prev) => {
+                                  const newAttendance = {
+                                    ...prev,
+                                    [student.id]: {
+                                      ...prev[student.id],
+                                      [event.key]: newValue,
+                                    },
+                                  };
+                                  saveAttendance(
+                                    student.id,
+                                    newAttendance[student.id]
+                                  );
+                                  return newAttendance;
+                                });
+                              }}
+                              onKeyDown={(e) =>
+                                handleKeyPress(e, student.id, event.key)
+                              }
+                              className={tableStyles.attendanceInput}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                    <tr key="total-row">
+                      <td key="total-label">
+                        <strong>Итого</strong>
+                      </td>
+                      {events.map((event) => (
+                        <td
+                          key={`total-${event.key}`}
+                          className={
+                            event.name.includes("Промежуточная аттестация")
+                              ? tableStyles.highlightedCell
+                              : ""
+                          }
+                        >
+                          <strong>{getEventStats(event.key)}</strong>
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

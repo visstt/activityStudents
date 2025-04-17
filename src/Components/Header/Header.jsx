@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./Header.module.css";
-import logo from "/chart.svg";
-import profileIcon from "/user.svg";
-import logoutIcon from "/logout.svg"; // Иконка для логаута
 
-export default function Header() {
+export default function Header({ onRateEventsClick }) {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userData, setUserData] = useState({
+    fullName: "Селиверстов С.А.",
+    roleName: "Директор",
+  });
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,6 +43,11 @@ export default function Header() {
         const data = await response.json();
         console.log("Полученные данные от сервера:", data);
 
+        setUserData({
+          fullName: data.fullName || "Неизвестный пользователь",
+          roleName: data.roleName || "Роль не указана",
+        });
+
         if (data.roleName === "admin") {
           console.log("Пользователь является администратором");
           setIsAdmin(true);
@@ -54,36 +62,89 @@ export default function Header() {
     checkAdminStatus();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleLogout = () => {
     document.cookie =
       "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     navigate("/login");
+    setIsDropdownOpen(false);
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
   };
 
   console.log("Текущее значение isAdmin:", isAdmin);
 
   return (
-    <div className={styles.header}>
-      <div className={styles.leftSection}>
-        <Link to="/events">
-          <img src={logo} alt="logo" />
-        </Link>
-        <h1>Анализ вовлеченности студентов</h1>
+    <header>
+      <div className="container">
+        <div className={styles.header}>
+          <div className={styles.logo_section}>
+            <Link to="/events">
+              <img src="/logo.svg" alt="logo" />
+            </Link>
+            <h1>Эхо участия</h1>
+          </div>
+          <div className={styles.nav_section}>
+            <ul>
+              <li className={styles.active}>
+                <Link to="/events">Основная таблица</Link>
+              </li>
+              <li>
+                <span onClick={onRateEventsClick} style={{ cursor: "pointer" }}>
+                  Оценка мероприятия
+                </span>
+              </li>
+            </ul>
+          </div>
+          <div className={styles.user_section}>
+            <img src="/bell.svg" alt="bell" className={styles.bell} />
+            <div
+              className={styles.user_info_wrapper}
+              onClick={toggleDropdown}
+              ref={dropdownRef}
+            >
+              <div className={styles.user_info}>
+                <h2>{userData.fullName}</h2>
+                <p>{userData.roleName}</p>
+              </div>
+              <img
+                src="/user_logo.svg"
+                alt="user_logo"
+                className={styles.user_logo}
+              />
+              {isDropdownOpen && (
+                <ul className={styles.dropdown}>
+                  {isAdmin && (
+                    <li>
+                      <Link
+                        to="/admin"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        Панель администратора
+                      </Link>
+                    </li>
+                  )}
+                  <li onClick={handleLogout}>Выйти</li>
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-      <div className={styles.rightSection}>
-        {isAdmin && (
-          <Link to="/admin" className={styles.profileLink}>
-            <img
-              src={profileIcon}
-              alt="Личный кабинет"
-              className={styles.profileIcon}
-            />
-          </Link>
-        )}
-        <Link to="/login" onClick={handleLogout} className={styles.profileLink}>
-          <img src={logoutIcon} alt="Выйти" className={styles.profileIcon} />
-        </Link>
-      </div>
-    </div>
+    </header>
   );
 }
