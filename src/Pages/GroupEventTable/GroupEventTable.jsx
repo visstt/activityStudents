@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styles from "./GroupEventTable.module.css";
 import FilterSidebar from "./FilterSidebar";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import Header from "../../Components/Header/Header";
 import { useNavigate } from "react-router-dom";
-import * as XLSX from "xlsx"; // Добавляем библиотеку для экспорта в Excel
-import { format } from "date-fns"; // Импортируем format для обработки дат
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -40,12 +40,49 @@ const GroupEventTable = () => {
   const [eventRatings, setEventRatings] = useState([]);
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [topEntities, setTopEntities] = useState({ type: "", data: [] });
+  const [topOrganizers, setTopOrganizers] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProfileData();
     applySavedFilters();
+    fetchTopOrganizers();
   }, []);
+
+  const fetchTopOrganizers = async () => {
+    const accessToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("access_token="))
+      ?.split("=")[1];
+
+    if (!accessToken) {
+      setError("Токен не найден для загрузки топа организаторов");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/top/teacherRating", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Ошибка при загрузке топа организаторов");
+      }
+
+      const data = await response.json();
+      setTopOrganizers(data.slice(0, 5)); // Берем только топ-5
+    } catch (error) {
+      console.error("Ошибка при загрузке топа организаторов:", error);
+      setError(error.message);
+      setTimeout(() => setError(null), 5000);
+    }
+  };
 
   const fetchProfileData = async () => {
     const accessToken = document.cookie
@@ -149,12 +186,7 @@ const GroupEventTable = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${
-            document.cookie
-              .split("; ")
-              .find((row) => row.startsWith("access_token="))
-              ?.split("=")[1]
-          }`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -222,17 +254,64 @@ const GroupEventTable = () => {
       const apiData = await studentsResponse.json();
       const dataArray = Array.isArray(apiData) ? apiData : [apiData];
 
-      const studentList = dataArray[0].map((student) => ({
-        id: student.studentId,
-        name: student.fullName,
-      }));
+      const groupsResponse = await fetch("http://localhost:3000/groupe/all", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
-      const eventList = dataArray[1].events.map((event, index) => ({
+      if (!groupsResponse.ok) {
+        throw new Error("Ошибка при загрузке данных групп");
+      }
+
+      const groupsData = await groupsResponse.json();
+      setGroups(groupsData);
+
+      const studentList = await Promise.all(
+        dataArray.map(async (student) => {
+          const studentResponse = await fetch(
+            `http://localhost:3000/student/${student.studentId}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+
+          if (!studentResponse.ok) {
+            console.warn(
+              `Не удалось получить данные для студента ${student.studentId}`
+            );
+            return {
+              id: student.studentId,
+              name: student.fullName,
+              groupName: "Без группы",
+              groupeId: null,
+            };
+          }
+
+          const studentData = await studentResponse.json();
+          const group = groupsData.find((g) => g.id === studentData.groupeId);
+
+          return {
+            id: student.studentId,
+            name: student.fullName,
+            groupName: group ? group.groupeName : "Без группы",
+            groupeId: studentData.groupeId || null,
+          };
+        })
+      );
+
+      const eventList = dataArray[0].events.map((event, index) => ({
         name: event.name,
         key: `event${index + 1}`,
       }));
 
-      const attendanceData = dataArray[0].reduce((acc, student) => {
+      const attendanceData = dataArray.reduce((acc, student) => {
         acc[student.studentId] = {};
         student.events.forEach((event, index) => {
           acc[student.studentId][`event${index + 1}`] = event.point.toString();
@@ -457,7 +536,93 @@ const GroupEventTable = () => {
     );
   };
 
-  const generateChartData = () => {
+  const fetchAllStudents = async () => {
+    const accessToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("access_token="))
+      ?.split("=")[1];
+
+    try {
+      const response = await fetch(
+        "http://localhost:3000/event-journal/allStudents",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      const data = await response.json();
+      return Array.isArray(data) ? data[0] : [data];
+    } catch (error) {
+      console.error("Ошибка при загрузке всех студентов:", error);
+      return [];
+    }
+  };
+
+  const getTopEntities = useMemo(() => {
+    if (!students.length || !Object.keys(attendance).length) {
+      return { type: "", data: [] };
+    }
+
+    if (filterType === "students" && !groupName.includes("Все студенты")) {
+      // Топ-5 студентов в выбранной группе
+      const topStudents = students
+        .map((student) => ({
+          name: student.name,
+          points: getStudentTotalPoints(student.id),
+        }))
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 5);
+
+      return { type: "students", data: topStudents };
+    } else if (filterType === "students") {
+      // Топ-5 групп
+      const groupPoints = students.reduce((acc, student) => {
+        const group = student.groupName || "Без группы";
+        const points = getStudentTotalPoints(student.id);
+        acc[group] = (acc[group] || 0) + points;
+        return acc;
+      }, {});
+
+      const topGroups = Object.entries(groupPoints)
+        .map(([name, points]) => ({ name, points }))
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 5);
+
+      return { type: "groups", data: topGroups };
+    } else if (filterType === "groups" || filterType === "departments") {
+      // Топ-5 студентов из всех групп или отделений
+      return async () => {
+        const allStudents = await fetchAllStudents();
+        const topStudents = allStudents
+          .map((student) => ({
+            name: student.fullName,
+            points: student.events.reduce(
+              (sum, event) => sum + (event.point || 0),
+              0
+            ),
+          }))
+          .sort((a, b) => b.points - a.points)
+          .slice(0, 5);
+
+        return { type: "students", data: topStudents };
+      };
+    }
+
+    return { type: "", data: [] };
+  }, [students, attendance, filterType, groupName]);
+
+  useEffect(() => {
+    if (filterType === "groups" || filterType === "departments") {
+      getTopEntities().then((result) => setTopEntities(result));
+    } else {
+      setTopEntities(getTopEntities);
+    }
+  }, [getTopEntities]);
+
+  const generateChartData = useMemo(() => {
     if (!students.length || !Object.keys(attendance).length) {
       return {
         labels: [],
@@ -472,29 +637,111 @@ const GroupEventTable = () => {
       };
     }
 
+    const colors = [
+      "#FF6384",
+      "#36A2EB",
+      "#FFCE56",
+      "#4BC0C0",
+      "#9966FF",
+      "#FF9F40",
+      "#E7E9ED",
+      "#FF5733",
+      "#C70039",
+      "#900C3F",
+      "#F94144",
+      "#F3722C",
+      "#F8961E",
+      "#F9C74F",
+      "#90BE6D",
+      "#43AA8B",
+      "#4D908E",
+      "#577590",
+      "#277DA1",
+      "#D00000",
+      "#FFBA08",
+      "#9D4EDD",
+      "#7209B7",
+      "#3A0CA3",
+      "#3F37C9",
+      "#4361EE",
+      "#4CC9F0",
+      "#F72585",
+      "#7209B7",
+      "#B5179E",
+      "#560BAD",
+      "#480CA8",
+      "#3A86FF",
+      "#8338EC",
+      "#FF006E",
+      "#FB5607",
+      "#FFBE0B",
+      "#8AC926",
+      "#06D6A0",
+      "#1B9AAA",
+      "#8F2D56",
+      "#D81159",
+      "#F48C06",
+      "#2A9D8F",
+      "#264653",
+      "#E76F51",
+      "#E9C46A",
+      "#F4A261",
+      "#2A9D8F",
+      "#219EBC",
+    ];
+
+    if (filterType === "students") {
+      const groupPoints = students.reduce((acc, student) => {
+        const group = student.groupName || "Без группы";
+        const points = getStudentTotalPoints(student.id);
+        acc[group] = (acc[group] || 0) + points;
+        return acc;
+      }, {});
+
+      if (Object.keys(groupPoints).length === 1 && groupPoints["Без группы"]) {
+        return {
+          labels: students.map((student) => student.name),
+          datasets: [
+            {
+              label: "Общие баллы",
+              data: students.map((student) =>
+                getStudentTotalPoints(student.id)
+              ),
+              backgroundColor: colors.slice(0, students.length),
+              hoverOffset: 4,
+            },
+          ],
+        };
+      }
+
+      const labels = Object.keys(groupPoints);
+      const data = Object.values(groupPoints);
+
+      return {
+        labels,
+        datasets: [
+          {
+            label: "Общие баллы по группам",
+            data,
+            backgroundColor: colors.slice(0, labels.length),
+            hoverOffset: 4,
+          },
+        ],
+      };
+    }
+
     return {
       labels: students.map((student) => student.name),
       datasets: [
         {
           label: "Общие баллы",
           data: students.map((student) => getStudentTotalPoints(student.id)),
-          backgroundColor: [
-            "#FF6384",
-            "#36A2EB",
-            "#FFCE56",
-            "#4BC0C0",
-            "#9966FF",
-            "#FF9F40",
-            "#E7E9ED",
-            "#FF5733",
-            "#C70039",
-            "#900C3F",
-          ].slice(0, students.length),
+          backgroundColor: colors.slice(0, students.length),
           hoverOffset: 4,
         },
       ],
     };
-  };
+  }, [students, attendance, filterType]);
 
   const chartOptions = {
     responsive: true,
@@ -508,7 +755,14 @@ const GroupEventTable = () => {
       },
       tooltip: {
         callbacks: {
-          label: (context) => `${context.label}: ${context.raw} баллов`,
+          label: (context) => {
+            const total = context.dataset.data.reduce(
+              (sum, val) => sum + val,
+              0
+            );
+            const percentage = ((context.raw / total) * 100).toFixed(1);
+            return `${context.label}: ${context.raw} баллов (${percentage}%)`;
+          },
         },
       },
     },
@@ -552,16 +806,18 @@ const GroupEventTable = () => {
         const studentList = data.map((student) => ({
           id: student.studentId,
           name: student.fullName,
+          groupName:
+            groups.find((g) => g.id === student.groupeId)?.groupeName ||
+            "Без группы",
+          groupeId: student.groupeId || null,
         }));
         const eventList = data[1].events.map((event, index) => ({
           name: event.name,
           key: `event${index + 1}`,
         }));
-        console.warn(data);
 
         const attendanceData = data.reduce((acc, student) => {
           acc[student.studentId] = {};
-
           student.events.forEach((event, index) => {
             acc[student.studentId][`event${index + 1}`] =
               event.point.toString();
@@ -580,19 +836,21 @@ const GroupEventTable = () => {
         );
         setFilterType("students");
       } else if (type === "clear") {
-        const studentList = data[0].map((student) => ({
+        const studentList = data.map((student) => ({
           id: student.studentId,
           name: student.fullName,
+          groupName:
+            groups.find((g) => g.id === student.groupeId)?.groupeName ||
+            "Без группы",
+          groupeId: student.groupeId || null,
         }));
-        const eventList = data[1].events.map((event, index) => ({
+        const eventList = data[0].events.map((event, index) => ({
           name: event.name,
           key: `event${index + 1}`,
         }));
-        console.warn(data);
 
-        const attendanceData = data[0].reduce((acc, student) => {
+        const attendanceData = data.reduce((acc, student) => {
           acc[student.studentId] = {};
-
           student.events.forEach((event, index) => {
             acc[student.studentId][`event${index + 1}`] =
               event.point.toString();
@@ -684,10 +942,8 @@ const GroupEventTable = () => {
     setError(null);
   };
 
-  // Функция экспорта таблицы в Excel
   const exportToExcel = () => {
     if (isRatingTableVisible) {
-      // Экспорт таблицы рейтингов
       const exportData = [
         [
           "Название мероприятия",
@@ -707,7 +963,6 @@ const GroupEventTable = () => {
       XLSX.utils.book_append_sheet(wb, ws, "EventRatings");
       XLSX.writeFile(wb, "EventRatings.xlsx");
     } else {
-      // Экспорт основной таблицы
       const exportData = [
         [groupName, ...events.map((event) => event.name)],
         ...students.map((student) => [
@@ -728,8 +983,6 @@ const GroupEventTable = () => {
     return <div className={styles.error}>Ошибка: {error}</div>;
   if (!students.length || !events.length)
     return <div className={styles.noData}>Нет данных для отображения</div>;
-
-  const chartData = generateChartData();
 
   return (
     <div className={styles.container}>
@@ -933,16 +1186,50 @@ const GroupEventTable = () => {
           </button>
           {isChartVisible && (
             <div className={styles.chartContainer}>
-              <Pie data={chartData} options={chartOptions} />
+              <Pie data={generateChartData} options={chartOptions} />
             </div>
           )}
+          <div className={styles.topSection}>
+            {topEntities.data.length > 0 && (
+              <div className={styles.topContainer}>
+                <h3>
+                  Топ-5 {topEntities.type === "groups" ? "групп" : "студентов"}{" "}
+                  по баллам
+                </h3>
+                <ul className={styles.topList}>
+                  {topEntities.data.map((item, index) => (
+                    <li key={`top-entity-${index}`} className={styles.topItem}>
+                      {index + 1}. {item.name} - {item.points} баллов
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {topOrganizers.length > 0 && (
+              <div className={styles.topContainer}>
+                <h3>Топ-5 организаторов мероприятий</h3>
+                <ul className={styles.topList}>
+                  {topOrganizers.map((organizer, index) => (
+                    <li
+                      key={`top-organizer-${organizer.id}`}
+                      className={styles.topItem}
+                    >
+                      {index + 1}. {organizer.fullName} - {organizer.eventCount}{" "}
+                      {organizer.eventCount === 1
+                        ? "мероприятие"
+                        : "мероприятий"}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
   );
 };
 
-// Список отделений для использования в applySavedFilters
 const departments = [
   { id: 1, departmentName: "Отделение креативных индустрий" },
   { id: 2, departmentName: "Отделение программирования" },
