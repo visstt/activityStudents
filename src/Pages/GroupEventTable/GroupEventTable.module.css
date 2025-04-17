@@ -1,16 +1,16 @@
 .container {
   position: relative;
   width: 100%;
-  min-height: 100vh; /* Устанавливаем минимальную высоту контейнера */
-  display: flex; /* Используем flex для управления расположением */
-  flex-direction: column; /* Элементы выстраиваются вертикально */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .tableWrapper {
-  overflow-x: auto; /* Горизонтальный скролл только для таблицы */
-  overflow-y: auto; /* Вертикальный скролл только для таблицы */
-  max-height: 60vh; /* Ограничиваем высоту таблицы */
-  margin: 20px 0; /* Сохраняем отступы как в оригинале */
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 60vh;
+  margin: 20px 0;
 }
 
 .eventTable {
@@ -31,17 +31,18 @@
 }
 
 .eventTable th {
-  background-color: #f4f4f4;
-  font-weight: bold;
+  font-weight: 500;
   outline: none;
-  font-size: 14px;
-  position: relative; /* Для позиционирования tooltip */
+  font-size: 16px;
+  position: relative;
+  border-top: 1px solid #f4f4f4; /* Линия сверху заголовков */
+  border-bottom: 1px solid #f4f4f4; /* Линия снизу заголовков */
 }
 
 .eventTable thead tr {
   position: sticky;
   top: 0;
-  background-color: #f4f4f4;
+  background-color: #fff; /* Белый фон для заголовков */
   z-index: 10;
 }
 
@@ -72,8 +73,22 @@
   border-top: 2px solid #ddd;
 }
 
+.eventTable tbody tr:nth-child(odd) {
+  background-color: #fff; /* Белый фон для нечетных строк */
+}
+
+.eventTable tbody tr:nth-child(even) {
+  background-color: #f9fbfc; /* Светло-голубой фон для четных строк */
+}
+
+.eventTable tbody tr:nth-child(even) input {
+  background-color: #f9fbfc; /* Фон инпутов в четных строках */
+}
+
 .eventTable td {
-  border: 1px solid #ddd;
+  font-size: 16px;
+  font-weight: 500;
+  border: none; /* Убрали линии между ячейками */
 }
 
 .eventTable td:focus-within {
@@ -95,7 +110,6 @@
   text-align: center;
   outline: none;
 }
-
 .loading {
   font-size: 18px;
   text-align: center;
@@ -161,7 +175,7 @@
   color: #fff; /* Белый текст */
   padding: 8px 12px;
   border-radius: 6px;
-  font-size: 14px; /* Читаемый размер шрифта */
+  font-size: 16px; /* Читаемый размер шрифта */
   line-height: 1.4; /* Улучшенный межстрочный интервал */
   white-space: nowrap; /* Текст в одну строку */
   z-index: 100; /* Выше всех элементов таблицы */
