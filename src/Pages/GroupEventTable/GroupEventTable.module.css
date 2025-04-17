@@ -1,3 +1,4 @@
+/* General Layout */
 .container {
   position: relative;
   width: 100%;
@@ -6,6 +7,107 @@
   flex-direction: column;
 }
 
+.parent {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column-gap: 20px;
+  grid-row-gap: 30px;
+  margin-top: 40px;
+}
+
+.div1 {
+  width: 450px;
+  height: 315px;
+  border-radius: 15px;
+  border: solid 2px #f4f4f4;
+  grid-area: 1 / 1 / 2 / 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column-reverse;
+}
+
+.div2,
+.div3 {
+  width: 450px;
+  height: 315px;
+  border-radius: 15px;
+  border: solid 2px #f4f4f4;
+}
+
+.div2 {
+  grid-area: 1 / 2 / 2 / 3;
+}
+
+.div3 {
+  grid-area: 1 / 3 / 2 / 4;
+}
+
+.div2 h2,
+.div3 h2 {
+  color: #0069ff;
+  padding: 20px;
+}
+
+.div4 {
+  border-radius: 15px;
+  border: solid 2px #f4f4f4;
+  grid-area: 2 / 1 / 3 / 4;
+}
+
+/* Filter Section */
+.filter_wrapper {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: solid 1px #f4f4f4;
+}
+
+.name_section {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.name_section p {
+  font-family: Jost, sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.block p {
+  font-family: Jost, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: #828282;
+  padding: 10px 15px;
+  background-color: #f1f2f6;
+  border-radius: 5px;
+}
+
+.filter_btn {
+  cursor: pointer;
+  background-color: #5c81ff;
+  color: #fff;
+  font-family: Jost, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.filter_btn:hover {
+  background-color: #4e75f8;
+}
+
+/* Table Styles */
 .tableWrapper {
   overflow-x: auto;
   overflow-y: auto;
@@ -19,7 +121,6 @@
   font-size: 16px;
   table-layout: fixed;
   width: auto;
-  overflow-x: auto;
 }
 
 .eventTable th,
@@ -35,14 +136,14 @@
   outline: none;
   font-size: 16px;
   position: relative;
-  border-top: 1px solid #f4f4f4; /* Линия сверху заголовков */
-  border-bottom: 1px solid #f4f4f4; /* Линия снизу заголовков */
+  border-top: 1px solid #f4f4f4;
+  border-bottom: 1px solid #f4f4f4;
 }
 
 .eventTable thead tr {
   position: sticky;
   top: 0;
-  background-color: #fff; /* Белый фон для заголовков */
+  background-color: #fff;
   z-index: 10;
 }
 
@@ -74,25 +175,25 @@
 }
 
 .eventTable tbody tr:nth-child(odd) {
-  background-color: #fff; /* Белый фон для нечетных строк */
+  background-color: #fff;
 }
 
 .eventTable tbody tr:nth-child(even) {
-  background-color: #f9fbfc; /* Светло-голубой фон для четных строк */
+  background-color: #f9fbfc;
 }
 
 .eventTable tbody tr:nth-child(even) input {
-  background-color: #f9fbfc; /* Фон инпутов в четных строках */
+  background-color: #f9fbfc;
 }
 
 .eventTable td {
   font-size: 16px;
   font-weight: 500;
-  border: none; /* Убрали линии между ячейками */
+  border: none;
 }
 
 .eventTable td:focus-within {
-  border: 2px solid #007bff;
+  border: 1.5px solid #3c8cfc;
 }
 
 .eventTable input {
@@ -110,47 +211,17 @@
   text-align: center;
   outline: none;
 }
-.loading {
-  font-size: 18px;
+
+.attendanceInput {
+  width: 30px;
   text-align: center;
-  padding: 20px;
 }
 
-.noData {
-  font-size: 16px;
-  color: #888;
-  text-align: center;
-  padding: 20px;
+.highlightedHeader {
+  background-color: #fcb8b8 !important;
 }
 
-.chartContainer {
-  margin-top: 20px;
-  width: 100%;
-  max-width: 600px;
-  height: 50px;
-  margin-left: 0;
-  margin-right: auto;
-  text-align: left;
-}
-
-.toggleChartButton {
-  width: 250px;
-  padding: 8px 16px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.toggleChartButton:hover {
-  background-color: #218838;
-}
-
-/* Стили для кастомного tooltip */
+/* Tooltip Styles */
 .tooltipWrapper {
   position: relative;
   display: inline-block;
@@ -160,87 +231,30 @@
 
 .eventName {
   display: block;
-  white-space: nowrap; /* Текст не переносится */
-  overflow: hidden; /* Обрезаем лишнее */
-  text-overflow: ellipsis; /* Многоточие */
-  max-width: 100px; /* Ограничение ширины текста */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
 }
 
 .customTooltip {
   position: absolute;
-  top: 30px; /* Над ячейкой */
+  top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8); /* Полупрозрачный черный фон */
-  color: #fff; /* Белый текст */
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
   padding: 8px 12px;
   border-radius: 6px;
-  font-size: 16px; /* Читаемый размер шрифта */
-  line-height: 1.4; /* Улучшенный межстрочный интервал */
-  white-space: nowrap; /* Текст в одну строку */
-  z-index: 100; /* Выше всех элементов таблицы */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Тень для глубины */
-  pointer-events: none; /* Не мешает взаимодействию */
+  font-size: 16px;
+  line-height: 1.4;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
 }
 
-.studentNameCell {
-  cursor: pointer;
-}
-
-.highlightedHeader {
-  background-color: #fcb8b8 !important; /* Нежно-красный цвет с приоритетом */
-}
-
-.filterInfo {
-  margin: 15px 0;
-  font-size: 16px; /* Читаемый размер */
-  font-weight: 600; /* Жирный текст */
-  color: #333; /* Нейтральный темный цвет */
-  text-align: left; /* Выравнивание влево */
-}
-.buttonGroup {
-  display: flex;
-  gap: 10px; /* Отступ между кнопками (можно настроить значение) */
-  margin-bottom: 20px; /* Отступ снизу, если нужен */
-}
-
-/* Существующий стиль для кнопок */
-.filterButton {
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-/* Дополнительные стили, если они у вас есть */
-.filterButton:hover {
-  background-color: #0056b3;
-}
-
-.returnButton {
-  padding: 8px 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
-  margin-top: 10px;
-  align-self: center;
-}
-
-.returnButton:hover {
-  background-color: #0056b3;
-}
-
-.attendanceInput {
-  width: 30px;
-  text-align: center;
-}
-
+/* Sidebar Styles */
 .sidebar {
   position: fixed;
   top: 0;
@@ -267,144 +281,52 @@
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
-.topContainer {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
 
-.topContainer h3 {
-  margin-bottom: 15px;
+/* Loading, Error, and No Data States */
+.loading {
   font-size: 18px;
-  color: #333;
-}
-
-.topList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.topItem {
-  padding: 10px 0;
-  font-size: 16px;
-  border-bottom: 1px solid #eee;
-}
-
-.topItem:last-child {
-  border-bottom: none;
-}
-.parent {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* grid-template-rows: repeat(2, 1fr); */
-  grid-column-gap: 20px;
-  grid-row-gap: 30px;
-  margin-top: 40px;
-}
-
-.div1 {
-  width: 450px;
-  height: 315px;
-  border-radius: 15px;
-  border: solid 2px #f4f4f4;
-  grid-area: 1 / 1 / 2 / 2;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column-reverse;
-}
-
-.div2,
-.div3 {
-  /* padding: 25px; */
-  width: 450px;
-  height: 315px;
-  border-radius: 15px;
-  border: solid 2px #f4f4f4;
-  grid-area: 1 / 2 / 2 / 3;
-}
-.div2 h2,
-.div3 h2 {
-  color: #0069ff;
+  text-align: center;
   padding: 20px;
 }
-.div3 {
-  width: 450px;
-  height: 315px;
-  border-radius: 15px;
-  border: solid 2px #f4f4f4;
-  grid-area: 1 / 3 / 2 / 4;
-}
-.div4 {
-  border-radius: 15px;
-  border: solid 2px #f4f4f4;
-  grid-area: 2 / 1 / 3 / 4;
-}
-.filter_wrapper {
-  padding: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: solid 1px #f4f4f4;
-}
-.name_section {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-.name_section p {
-  font-family: Jost;
-  font-weight: 500;
-  font-size: 18px;
-}
-.block p {
-  font-family: Jost;
-  font-weight: 500;
+
+.error {
   font-size: 16px;
-  line-height: 100%;
-  letter-spacing: 0%;
-  color: #828282;
-  padding: 10px 15px;
-  background-color: #f1f2f6;
-  border-radius: 5px;
+  color: red;
+  text-align: center;
+  padding: 20px;
 }
-.filter_btn {
+
+.noData {
+  font-size: 16px;
+  color: #888;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Rating Table */
+.ratingTableContainer {
+  margin: 20px 0;
+}
+
+/* Student Name Cell */
+.studentNameCell {
   cursor: pointer;
-  background-color: #5c81ff;
-  color: #fff;
-  font-family: Jost;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 100%;
-  letter-spacing: 0%;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  transition: 0.3s ease-in-out;
-}
-.filter_btn:hover {
-  background-color: #4e75f8;
-}
-.chartControls {
-  margin-bottom: 10px;
-  text-align: right;
 }
 
-.legendToggleBtn {
-  padding: 8px 12px;
-  background-color: #4570ff;
+/* Button Styles */
+.returnButton {
+  padding: 8px 16px;
+  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
-  font-family: Jost, sans-serif;
-  font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+  align-self: center;
 }
 
-.legendToggleBtn:hover {
-  background-color: #3558cc;
+.returnButton:hover {
+  background-color: #0056b3;
 }
