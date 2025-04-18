@@ -1,7 +1,10 @@
-.profileContainer {
-  max-width: 800px;
+.container {
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 15px; /* Уменьшаем отступы для мобильных устройств */
+  padding: 15px;
+}
+
+.profileContainer {
   position: relative;
 }
 
@@ -31,41 +34,77 @@
   height: 16px;
 }
 
-.title {
-  margin-top: 50px;
-  font-size: 28px; /* Уменьшаем размер шрифта */
-  margin-bottom: 15px;
+.profileContainer h1 {
   text-align: center;
+  margin: 40px 0;
+  font-family: Jost, sans-serif;
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 100%;
+  color: #5c81ff;
 }
 
-.profileInfo {
-  background-color: #f5f5f5;
-  padding: 15px; /* Уменьшаем отступы */
-  border-radius: 8px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.admins_tables {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-.profileInfo h2 {
-  font-size: 20px; /* Уменьшаем заголовок */
-  margin-bottom: 10px;
+.info_wrapper {
+  border: solid 2px #f4f4f4;
+  width: 315px;
+  height: 250px;
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
-.profileInfo p {
-  margin: 8px 0;
-  font-size: 14px; /* Уменьшаем шрифт для компактности */
-}
-
-.eventsSection {
-  background-color: #f5f5f5;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.eventsSection h2 {
+.info_wrapper h2 {
+  font-family: Jost, sans-serif;
+  font-weight: 500;
   font-size: 20px;
-  margin-bottom: 10px;
+}
+
+.tralalero {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.blockInfo h3 {
+  font-family: Jost, sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.blockInfo p {
+  font-family: Jost, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.event_table {
+  border: solid 2px #f4f4f4;
+  width: 1000px;
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.create_event {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: solid 1px #f4f4f4;
+  padding: 10px 0;
+  margin-bottom: 15px;
+}
+
+.create_event h2 {
+  font-family: Jost, sans-serif;
+  font-weight: 500;
+  font-size: 20px;
 }
 
 .addEventForm {
@@ -80,21 +119,32 @@
   padding: 6px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 16px;
 }
 
-.addButton {
-  padding: 6px 12px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
+.datePicker {
+  width: 120px;
+  padding: 6px;
+  font-size: 16px;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
 }
 
-.addButton:hover {
-  background-color: #45a049;
+.add_event_btn {
+  cursor: pointer;
+  background-color: #5c81ff;
+  border: none;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-family: Jost, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  transition: 0.3s ease-in-out;
+}
+
+.add_event_btn:hover {
+  background-color: #4e75f8;
 }
 
 .eventsList {
@@ -108,7 +158,7 @@
   align-items: center;
   padding: 8px;
   border-bottom: 1px solid #ddd;
-  font-size: 14px; /* Уменьшаем шрифт */
+  font-size: 146x;
 }
 
 .eventItem:last-child {
@@ -165,14 +215,6 @@
   background-color: #45a049;
 }
 
-.datePicker {
-  width: 120px; /* Уменьшаем ширину для компактности */
-  padding: 6px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
 .logoutButton {
   padding: 8px 16px;
   background-color: #ff4444;
@@ -190,26 +232,37 @@
 
 /* Планшеты (768px–1024px) */
 @media (max-width: 1024px) {
-  .profileContainer {
+  .container {
     max-width: 100%;
     padding: 10px;
   }
 
-  .title {
-    font-size: 24px;
+  .profileContainer h1 {
+    font-size: 20px;
+  }
+
+  .admins_tables {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .info_wrapper,
+  .event_table {
+    width: 100%;
+    max-width: 600px;
   }
 
   .addEventForm {
-    flex-wrap: wrap; /* Позволяем элементам переноситься */
+    flex-wrap: wrap;
     gap: 10px;
   }
 
   .eventInput,
   .datePicker {
-    width: 100%; /* Занимают полную ширину на планшетах */
+    width: 100%;
   }
 
-  .addButton {
+  .add_event_btn {
     width: 100%;
   }
 
@@ -227,26 +280,22 @@
 
 /* Телефоны (до 768px) */
 @media (max-width: 768px) {
-  .profileContainer {
+  .container {
     padding: 8px;
   }
 
-  .title {
-    font-size: 20px;
-  }
-
-  .profileInfo h2,
-  .eventsSection h2 {
+  .info_wrapper h2,
+  .create_event h2 {
     font-size: 18px;
   }
 
-  .profileInfo,
-  .eventsSection {
+  .info_wrapper,
+  .event_table {
     padding: 10px;
   }
 
   .addEventForm {
-    flex-direction: column; /* Столбец для телефонов */
+    flex-direction: column;
     gap: 8px;
   }
 
@@ -255,13 +304,13 @@
     width: 100%;
   }
 
-  .addButton {
+  .add_event_btn {
     width: 100%;
     padding: 8px;
   }
 
   .eventItem {
-    flex-direction: column; /* Элементы списка в столбец */
+    flex-direction: column;
     align-items: flex-start;
     gap: 5px;
   }
@@ -285,24 +334,25 @@
 
 /* Очень маленькие экраны (до 480px) */
 @media (max-width: 480px) {
-  .title {
+  .profileContainer h1 {
     font-size: 18px;
   }
 
-  .profileInfo h2,
-  .eventsSection h2 {
+  .info_wrapper h2,
+  .create_event h2 {
     font-size: 16px;
   }
 
-  .profileInfo p,
+  .blockInfo h3,
+  .blockInfo p,
   .eventItem,
   .eventInput,
   .datePicker,
-  .addButton,
+  .add_event_btn,
   .deleteButton,
   .addUserLink,
   .logoutButton {
-    font-size: 12px; /* Еще меньше шрифт для маленьких экранов */
+    font-size: 12px;
   }
 
   .backButton {

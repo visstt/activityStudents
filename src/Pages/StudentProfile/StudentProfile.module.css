@@ -1,8 +1,11 @@
 .container {
-  padding: 20px;
-  max-width: 800px;
+  max-width: 1400px;
   margin: 0 auto;
-  position: relative; /* Добавлено для позиционирования кнопки */
+  padding: 15px;
+}
+
+.profileContainer {
+  position: relative;
 }
 
 .backButton {
@@ -31,36 +34,121 @@
   height: 16px;
 }
 
-.profileHeader {
-  margin-bottom: 20px;
+.profileContainer h1 {
+  text-align: center;
+  margin: 40px 0;
+  font-family: Jost, sans-serif;
+  font-weight: 600;
+  font-size: 28px;
+  line-height: 100%;
+  color: #5c81ff;
 }
 
-.profileHeader h1 {
-  margin-bottom: 10px;
-  color: #333;
+.admins_tables {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-.studentInfo p {
-  margin: 5px 0;
-  color: #666;
+.studentInfo {
+  border: solid 2px #f4f4f4;
+  width: 315px;
+  height: 500px;
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.studentInfo h2 {
+  font-family: Jost, sans-serif;
+  font-weight: 500;
+  font-size: 20px;
+}
+
+.tralalero {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.blockInfo h3 {
+  font-family: Jost, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.blockInfo p {
+  font-family: Jost, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.eventsSection {
+  border: solid 2px #f4f4f4;
+  width: 1000px;
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.filterContainer {
+  padding: 10px 0;
+  border-bottom: solid 1px #f4f4f4;
+  margin-bottom: 15px;
+}
+
+.filterContainer h2 {
+  font-family: Jost, sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.filterControls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.sortSelect {
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  font-family: Jost, sans-serif;
+}
+
+.datePicker {
+  width: 200px;
+  padding: 6px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: Jost, sans-serif;
 }
 
 .eventsTable {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  font-family: Jost, sans-serif;
 }
 
 .eventsTable th,
 .eventsTable td {
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #f4f4f4;
   text-align: left;
 }
 
 .eventsTable th {
   background-color: #f5f5f5;
-  font-weight: bold;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.eventsTable td {
+  font-size: 16px;
 }
 
 .eventsTable tr:nth-child(even) {
@@ -68,64 +156,135 @@
 }
 
 .totalRow {
-  font-weight: bold;
+  font-weight: 500;
   background-color: #f0f0f0;
 }
 
 .loading {
   text-align: center;
-  padding: 20px;
-  font-size: 18px;
+  padding: 15px;
+  font-size: 16px;
+  font-family: Jost, sans-serif;
 }
 
 .noData {
   text-align: center;
-  padding: 20px;
-  font-size: 18px;
+  padding: 15px;
+  font-size: 16px;
   color: #666;
-}
-
-.filterContainer {
-  margin: 20px 0;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.sortSelect {
-  margin-left: 10px;
-  padding: 5px;
-  font-size: 14px;
-  border-radius: 4px;
-}
-
-.datePicker {
-  padding: 5px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 200px;
-  text-align: center;
+  font-family: Jost, sans-serif;
 }
 
 /* Стили для календаря */
 .react-datepicker {
-  font-family: Arial, sans-serif;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  font-family: Jost, sans-serif;
+  border: 1px solid #f4f4f4;
+  border-radius: 8px;
 }
 
 .react-datepicker__header {
-  background-color: #f0f0f0;
-  border-bottom: 1px solid #ccc;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #f4f4f4;
 }
 
 .react-datepicker__day--selected,
 .react-datepicker__day--in-range {
-  background-color: #007bff;
+  background-color: #5c81ff;
   color: white;
 }
 
 .react-datepicker__day--in-selecting-range {
-  background-color: #cce5ff;
+  background-color: #e0e7ff;
+}
+
+/* Планшеты (768px–1024px) */
+@media (max-width: 1024px) {
+  .container {
+    max-width: 100%;
+    padding: 10px;
+  }
+
+  .profileContainer h1 {
+    font-size: 20px;
+  }
+
+  .admins_tables {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .studentInfo,
+  .eventsSection {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .filterControls {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .sortSelect,
+  .datePicker {
+    width: 100%;
+  }
+}
+
+/* Телефоны (до 768px) */
+@media (max-width: 768px) {
+  .container {
+    padding: 8px;
+  }
+
+  .studentInfo h2,
+  .filterContainer h2 {
+    font-size: 16px;
+  }
+
+  .studentInfo,
+  .eventsSection {
+    padding: 10px;
+  }
+
+  .sortSelect,
+  .datePicker {
+    width: 100%;
+  }
+
+  .eventsTable th,
+  .eventsTable td {
+    font-size: 12px;
+    padding: 8px;
+  }
+}
+
+/* Очень маленькие экраны (до 480px) */
+@media (max-width: 480px) {
+  .profileContainer h1 {
+    font-size: 18px;
+  }
+
+  .studentInfo h2,
+  .filterContainer h2 {
+    font-size: 14px;
+  }
+
+  .blockInfo h3,
+  .blockInfo p,
+  .sortSelect,
+  .datePicker,
+  .eventsTable th,
+  .eventsTable td {
+    font-size: 12px;
+  }
+
+  .backButton {
+    width: 25px;
+    height: 25px;
+  }
+
+  .backButton svg {
+    width: 14px;
+    height: 14px;
+  }
 }

@@ -162,100 +162,97 @@ export default function ProfileAdmin() {
   return (
     <>
       <Header />
-
-      <div className={styles.profileContainer}>
-        <button
-          onClick={handleBackToEvents}
-          className={styles.backButton}
-          title="Назад к мероприятиям"
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#333"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <div className={styles.container}>
+        <div className={styles.profileContainer}>
+          <button
+            onClick={handleBackToEvents}
+            className={styles.backButton}
+            title="Назад к мероприятиям"
           >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className={styles.title}>Личный кабинет администратора</h1>
-
-        <div className={styles.profileInfo}>
-          <h2>Информация о пользователе</h2>
-          <p>
-            <strong>ФИО:</strong> {userData?.fullName}
-          </p>
-          <p>
-            <strong>Логин:</strong> {userData?.login}
-          </p>
-          <p>
-            <strong>Роль:</strong> {userData?.roleName}
-          </p>
-        </div>
-
-        <div className={styles.eventsSection}>
-          <h2>Список мероприятий</h2>
-
-          <form onSubmit={handleAddEvent} className={styles.addEventForm}>
-            <input
-              type="text"
-              value={newEventName}
-              onChange={(e) => setNewEventName(e.target.value)}
-              placeholder="Название нового мероприятия"
-              className={styles.eventInput}
-            />
-            <DatePicker
-              selected={newEventDate}
-              onChange={(date) => setNewEventDate(date)}
-              dateFormat="dd.MM.yyyy"
-              locale={ru}
-              placeholderText="Выберите дату"
-              className={styles.datePicker}
-              showPopperArrow={false}
-            />
-            <button type="submit" className={styles.addButton}>
-              Добавить
-            </button>
-          </form>
-
-          {events.length > 0 ? (
-            <ul className={styles.eventsList}>
-              {events.map((event) => (
-                <li key={event.id} className={styles.eventItem}>
-                  <span>
-                    {event.eventName} (
-                    {new Date(event.eventDate).toLocaleDateString("ru-RU", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })}
-                    )
-                  </span>
-                  <button
-                    onClick={() => handleDeleteEvent(event.id)}
-                    className={styles.deleteButton}
-                  >
-                    Удалить
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Мероприятия не найдены</p>
-          )}
-        </div>
-
-        <div className={styles.actionsSection}>
-          <Link to="/admin/add-user" className={styles.addUserLink}>
-            Добавить пользователя
-          </Link>
-          <button onClick={handleLogout} className={styles.logoutButton}>
-            Выйти
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#333"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
           </button>
+          <h1>Личный кабинет администратора</h1>
+          <div className={styles.admins_tables}>
+            <div className={styles.info_wrapper}>
+              <h2>Информация о пользователе</h2>
+              <div className={styles.tralalero}>
+                <div className={styles.blockInfo}>
+                  <h3>ФИО</h3>
+                  <p>{userData?.fullName}</p>
+                </div>
+                <div className={styles.blockInfo}>
+                  <h3>Логин</h3>
+                  <p>{userData?.login}</p>
+                </div>
+                <div className={styles.blockInfo}>
+                  <h3>Роль</h3>
+                  <p>{userData?.roleName}</p>
+                </div>
+              </div>
+            </div>
+            <div className={styles.event_table}>
+              <div className={styles.create_event}>
+                <h2>Мероприятия</h2>
+              </div>
+              <form onSubmit={handleAddEvent} className={styles.addEventForm}>
+                <input
+                  type="text"
+                  value={newEventName}
+                  onChange={(e) => setNewEventName(e.target.value)}
+                  placeholder="Название нового мероприятия"
+                  className={styles.eventInput}
+                />
+                <DatePicker
+                  selected={newEventDate}
+                  onChange={(date) => setNewEventDate(date)}
+                  dateFormat="dd.MM.yyyy"
+                  locale={ru}
+                  placeholderText="Выберите дату"
+                  className={styles.datePicker}
+                  showPopperArrow={false}
+                />
+                <button type="submit" className={styles.add_event_btn}>
+                  Добавить
+                </button>
+              </form>
+              {events.length > 0 ? (
+                <ul className={styles.eventsList}>
+                  {events.map((event) => (
+                    <li key={event.id} className={styles.eventItem}>
+                      <span>{event.eventName}</span>
+                      <button
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className={styles.deleteButton}
+                      >
+                        Удалить
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>Мероприятия не найдены</p>
+              )}
+            </div>
+          </div>
+          <div className={styles.actionsSection}>
+            <Link to="/admin/add-user" className={styles.addUserLink}>
+              Добавить пользователя
+            </Link>
+            <button onClick={handleLogout} className={styles.logoutButton}>
+              Выйти
+            </button>
+          </div>
         </div>
       </div>
     </>
