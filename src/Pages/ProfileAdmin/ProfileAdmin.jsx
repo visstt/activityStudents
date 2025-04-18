@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import ru from "date-fns/locale/ru";
 import Header from "../../Components/Header/Header";
+import Loading from "../../Components/Loading/Loading";
 
 export default function ProfileAdmin() {
   const [userData, setUserData] = useState(null);
@@ -152,7 +153,7 @@ export default function ProfileAdmin() {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Загрузка...</div>;
+    return <Loading />;
   }
 
   if (error) {

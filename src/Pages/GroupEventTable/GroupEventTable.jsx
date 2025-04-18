@@ -8,6 +8,7 @@ import Header from "../../Components/Header/Header";
 import { useNavigate } from "react-router-dom";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
+import Loading from "../../Components/Loading/Loading";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -991,7 +992,7 @@ const GroupEventTable = () => {
     }
   };
 
-  if (loading) return <div className={tableStyles.loading}>Загрузка...</div>;
+  if (loading) return <Loading />;
   if (error && !isRatingTableVisible)
     return <div className={tableStyles.error}>Ошибка: {error}</div>;
   if (!students.length || !events.length)

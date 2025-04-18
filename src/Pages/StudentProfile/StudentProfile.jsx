@@ -7,6 +7,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, subWeeks, subMonths, subYears } from "date-fns";
 import ru from "date-fns/locale/ru";
+import Loading from "../../Components/Loading/Loading";
 
 const StudentProfile = () => {
   const { studentId } = useParams();
@@ -130,7 +131,7 @@ const StudentProfile = () => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Загрузка...</div>;
+    return <Loading />;
   }
 
   if (!studentData) {

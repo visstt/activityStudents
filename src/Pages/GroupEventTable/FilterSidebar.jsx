@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import ru from "date-fns/locale/ru";
+import Loading from "../../Components/Loading/Loading";
 
 const FilterSidebar = ({ onFilterApply, onClose }) => {
   const [filterType, setFilterType] = useState(null);
@@ -413,7 +414,7 @@ const FilterSidebar = ({ onFilterApply, onClose }) => {
         disabled={loading}
         className={styles.resetButton}
       >
-        {loading ? "Загрузка..." : "Очистить"}
+        {loading ? <Loading /> : "Очистить"}
       </button>
 
       {error && <p className={styles.error}>{error}</p>}
